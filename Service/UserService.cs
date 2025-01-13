@@ -1,4 +1,3 @@
-
 using System.Text.Json;
 using DotnetCoursework.Model;
 
@@ -67,8 +66,8 @@ namespace ExpenseTrackerApp.Services
             return user?.Expenses ?? new List<Expense>();
         }
 
-        // Add a new expense for the currently logged-in user
-        public void AddExpenseForUser(Expense expense)
+        // Add a new expense for the currently logged-in user and return true/false
+        public bool AddExpenseForUser(Expense expense)
         {
             var user = _userContext.CurrentUser;
 
@@ -77,11 +76,22 @@ namespace ExpenseTrackerApp.Services
                 throw new Exception("No user is logged in");
             }
 
+            // Check if the total balance is sufficient to add the expense
+            if (user.TotalBalance < expense.Amount)
+            {
+                return false; // Insufficient balance, return false
+            }
+
+            // Deduct the expense amount from the user's balance
+            user.TotalBalance -= expense.Amount;
+
             // Assign a unique ID to the expense
             expense.Id = user.Expenses.Any() ? user.Expenses.Max(e => e.Id) + 1 : 1;
 
             user.Expenses.Add(expense);
             SaveUsersToJson(); // Persist changes
+
+            return true; // Expense added successfully, return true
         }
 
         // Get expenses by tag for the currently logged-in user
@@ -96,7 +106,6 @@ namespace ExpenseTrackerApp.Services
             var user = _userContext.CurrentUser;
             List<string> list = user.Tags.ToList();
             return list;
-
         }
 
         public User? GetCurrentUser()

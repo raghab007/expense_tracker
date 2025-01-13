@@ -5,11 +5,10 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-
 <NavMenu></NavMenu>
 <div style="display: flex; flex-direction: column; padding: 20px;">
     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
-        <h3>Balance:@balance</h3>
+        <h3>Balance: @balance</h3>
         <div style="max-width: 900px; width: 100%;">
             <!-- Page Title and Navigation Button -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -53,13 +52,16 @@
 
 @code {
     private Expense NewExpense = new Expense();
-    private List<string> tags = new List<string>();
-    private string balance = 0.ToString();
-
+    private string balance = "0";
+    
     protected override async Task OnInitializedAsync()
     {
-        balance  = UserService.GetCurrentUser().TotalBalance.ToString();
-        
+        // Update the balance display based on the current user's balance
+        var currentUser = UserService.GetCurrentUser();
+        if (currentUser != null)
+        {
+            balance = currentUser.TotalBalance.ToString();
+        }
     }
 
     private async Task HandleAddExpense()
@@ -67,18 +69,29 @@
         try
         {
             // Add the expense for the logged-in user using UserService
-            UserService.GetAllTags();
-            UserService.AddExpenseForUser(NewExpense);
-         
-            // Show a success message
-            Snackbar.Add("Expense added successfully!", Severity.Success);
+            bool expenseAdded = UserService.AddExpenseForUser(NewExpense);
+            
+            if (expenseAdded)
+            {
+                // Show a success message if the expense was added successfully
+                Snackbar.Add("Expense added successfully!", Severity.Success);
 
-            // Reset the form
-            NewExpense = new Expense();
+                // Update the balance after adding the expense
+                var currentUser = UserService.GetCurrentUser();
+                balance = currentUser?.TotalBalance.ToString() ?? "0";
+
+                // Reset the form
+                NewExpense = new Expense();
+            }
+            else
+            {
+                // Show an error message if the balance is insufficient
+                Snackbar.Add("Insufficient balance to add the expense", Severity.Error);
+            }
         }
         catch (Exception ex)
         {
-            // Show an error message if the user is not logged in
+            // Show an error message if something went wrong
             Snackbar.Add($"Failed to add expense: {ex.Message}", Severity.Error);
         }
     }

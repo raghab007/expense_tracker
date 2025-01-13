@@ -4,7 +4,7 @@ namespace DotnetCoursework.Model
     {
         public int Id { get; set; }
         public DateTime?Date { get; set; }
-        public double Amount { get; set; }
+        public int Amount { get; set; }
         public string Description { get; set; }
         public string ExpenseTag { get; set; }
         
