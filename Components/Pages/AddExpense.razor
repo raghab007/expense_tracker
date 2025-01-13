@@ -5,7 +5,6 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-
 <NavMenu></NavMenu>
 <div style="display: flex; flex-direction: column; padding: 20px;">
     <nav>
@@ -42,7 +41,13 @@
 
                     <div style="margin-bottom: 15px;">
                         <label for="expense-tag" style="display: block; margin-bottom: 5px; font-weight: bold;">Tag</label>
-                        <InputText id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag" />
+                        <select id="expense-tag" class="form-control" @bind="NewExpense.ExpenseTag">
+                            <option value="" disabled>Select a tag</option>
+                            @foreach (var tag in AllTags)
+                            {
+                                <option value="@tag">@tag</option>
+                            }
+                        </select>
                     </div>
 
                     <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
@@ -56,6 +61,13 @@
 
 @code {
     private Expense NewExpense = new Expense();
+    private List<string> AllTags = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load tags for the currently logged-in user
+        AllTags = UserService.GetAllTags();
+    }
 
     private async Task HandleAddExpense()
     {

@@ -10,5 +10,5 @@ public class User
     public string Password { get; set; }
     public List<Expense> Expenses { get; set; }
     
-    //public List<Tag> Tags { get; set; }
+    public List<string> Tags { get; set; }
 }

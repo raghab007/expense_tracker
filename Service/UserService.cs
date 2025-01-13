@@ -90,6 +90,14 @@ namespace ExpenseTrackerApp.Services
             return user?.Expenses.Where(e => e.ExpenseTag == tag).ToList() ?? new List<Expense>();
         }
 
+        public List<string> GetAllTags()
+        {
+            var user = _userContext.CurrentUser;
+            List<string> list = user.Tags.ToList();
+            return list;
+
+        }
+
         // Add a new user (e.g., during registration)
         public void AddUser(User newUser)
         {

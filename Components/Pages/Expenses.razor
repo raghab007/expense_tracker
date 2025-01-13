@@ -4,8 +4,6 @@
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
-
-
 <div style="display: flex; flex-direction: column; padding: 20px;">
     <!-- Page Title and Navigation Button -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -56,7 +54,7 @@
                         <td style="padding: 8px; border: 1px solid #ddd;">@expense.Description</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">$@expense.Amount</td>
                         <td style="padding: 8px; border: 1px solid #ddd;">
-                            <button style="background-color: #e74c3c; color: white; padding: 5px 10px; cursor: pointer; border: none; border-radius: 5px;" @onclick="() => DeleteExpense(expense.Id)">
+                            <button style="background-color: #e74c3c; color: white; padding: 5px 10px; cursor: pointer; border: none; border-radius: 5px;" @onclick="() => ShowDeleteConfirmation(expense.Id)">
                                 Delete
                             </button>
                         </td>
@@ -76,6 +74,23 @@
     </div>
 </div>
 
+<!-- Confirmation Modal -->
+@if (isDeleteModalVisible)
+{
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
+        <div style="background-color: white; padding: 20px; border-radius: 10px; width: 300px;">
+            <h6 style="color: #333; margin-bottom: 15px;">Are you sure you want to delete this expense?</h6>
+            <div style="display: flex; justify-content: space-between;">
+                <button style="background-color: #e74c3c; color: white; padding: 8px 15px; border: none; border-radius: 5px;" @onclick="ConfirmDelete">
+                    Yes, Delete
+                </button>
+                <button style="background-color: #ccc; color: black; padding: 8px 15px; border: none; border-radius: 5px;" @onclick="CancelDelete">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private List<Expense> expenses = new List<Expense>();
@@ -85,6 +100,8 @@
     private decimal? maxAmount;
     private DateTime? startDate;
     private DateTime? endDate;
+    private int? expenseIdToDelete = null;  // The ID of the expense to delete
+    private bool isDeleteModalVisible = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,7 +109,7 @@
         {
             // Fetch expenses for the logged-in user
             expenses = UserService.GetUserExpenses();
-            filteredExpenses = expenses;
+            filteredExpenses = expenses;  // Initially, show all expenses
         }
         catch (Exception ex)
         {
@@ -103,21 +120,29 @@
 
     private void ApplyFilters()
     {
-        // filteredExpenses = expenses
-        //     .Where(e => (string.IsNullOrEmpty(searchDescription) || e.Description.Contains(searchDescription, StringComparison.OrdinalIgnoreCase))
-        //                 && (!minAmount.HasValue || e.Amount >= minAmount.Value)
-        //                 && (!maxAmount.HasValue || e.Amount <= maxAmount.Value)
-        //                 && (!startDate.HasValue || e.Date >= startDate.Value)
-        //                 && (!endDate.HasValue || e.Date <= endDate.Value))
-        //     .ToList();
+        // Apply filters based on user input
+        filteredExpenses = expenses
+            .Where(e => (string.IsNullOrEmpty(searchDescription) || e.Description.Contains(searchDescription, StringComparison.OrdinalIgnoreCase))  // Search by description
+                        && (!minAmount.HasValue || Convert.ToDecimal(e.Amount) >= minAmount.Value)  // Filter by minimum amount
+                        && (!maxAmount.HasValue || Convert.ToDecimal(e.Amount) <= maxAmount.Value)  // Filter by maximum amount
+                        && (!startDate.HasValue || e.Date >= startDate.Value)  // Filter by start date
+                        && (!endDate.HasValue || e.Date <= endDate.Value))  // Filter by end date
+            .ToList();
     }
 
-    private async Task DeleteExpense(int expenseId)
+    private void ShowDeleteConfirmation(int expenseId)
     {
-        try
+        // Set the expense ID to delete and show the confirmation modal
+        expenseIdToDelete = expenseId;
+        isDeleteModalVisible = true;
+    }
+
+    private void ConfirmDelete()
+    {
+        if (expenseIdToDelete.HasValue)
         {
             // Find the expense to delete from the current list
-            var expenseToDelete = expenses.FirstOrDefault(e => e.Id == expenseId);
+            var expenseToDelete = expenses.FirstOrDefault(e => e.Id == expenseIdToDelete.Value);
 
             if (expenseToDelete != null)
             {
@@ -128,12 +153,18 @@
                 // Save updated list of expenses back to the JSON file
                 UserService.SaveUsersToJson();
             }
+
+            // Hide the modal after deleting
+            isDeleteModalVisible = false;
+            expenseIdToDelete = null;
         }
-        catch (Exception ex)
-        {
-            // Handle the error (for now, we just print the error in the console)
-            Console.WriteLine($"Error deleting expense: {ex.Message}");
-        }
+    }
+
+    private void CancelDelete()
+    {
+        // Just hide the modal without making any changes
+        isDeleteModalVisible = false;
+        expenseIdToDelete = null;
     }
 
     private async Task NavigateToHome()
