@@ -5,13 +5,11 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
+
 <NavMenu></NavMenu>
 <div style="display: flex; flex-direction: column; padding: 20px;">
-    <nav>
-        <!-- Add your NavMenu content here if needed -->
-    </nav>
-
     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+        <h3>Balance:@balance</h3>
         <div style="max-width: 900px; width: 100%;">
             <!-- Page Title and Navigation Button -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -26,28 +24,22 @@
                 <EditForm Model="@NewExpense" OnValidSubmit="@HandleAddExpense">
                     <div style="margin-bottom: 15px;">
                         <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description</label>
-                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description" />
+                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description"/>
                     </div>
-                    
+
                     <div style="margin-bottom: 15px;">
                         <label for="date" style="display: block; margin-bottom: 5px; font-weight: bold;">Date</label>
-                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date" />
+                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date"/>
                     </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount</label>
-                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount" />
+                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount"/>
                     </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="expense-tag" style="display: block; margin-bottom: 5px; font-weight: bold;">Tag</label>
-                        <select id="expense-tag" class="form-control" @bind="NewExpense.ExpenseTag">
-                            <option value="" disabled>Select a tag</option>
-                            @foreach (var tag in AllTags)
-                            {
-                                <option value="@tag">@tag</option>
-                            }
-                        </select>
+                        <InputText id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag"/>
                     </div>
 
                     <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
@@ -61,12 +53,13 @@
 
 @code {
     private Expense NewExpense = new Expense();
-    private List<string> AllTags = new List<string>();
+    private List<string> tags = new List<string>();
+    private string balance = 0.ToString();
 
     protected override async Task OnInitializedAsync()
     {
-        // Load tags for the currently logged-in user
-        AllTags = UserService.GetAllTags();
+        balance  = UserService.GetCurrentUser().TotalBalance.ToString();
+        
     }
 
     private async Task HandleAddExpense()
@@ -74,8 +67,9 @@
         try
         {
             // Add the expense for the logged-in user using UserService
+            UserService.GetAllTags();
             UserService.AddExpenseForUser(NewExpense);
-
+         
             // Show a success message
             Snackbar.Add("Expense added successfully!", Severity.Success);
 

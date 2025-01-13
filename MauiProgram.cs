@@ -27,7 +27,6 @@ namespace DotnetCourseowork
                 
 
             // Register ExpenseService as a Singleton or Transient
-            builder.Services.AddSingleton<ExpenseService>();
             builder.Services.AddSingleton<UserService>();
             builder.Services.AddScoped<UserContext>();
 

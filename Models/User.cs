@@ -11,4 +11,6 @@ public class User
     public List<Expense> Expenses { get; set; }
     
     public List<string> Tags { get; set; }
+    
+    public int TotalBalance { get; set; }
 }

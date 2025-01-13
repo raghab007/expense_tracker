@@ -1,3 +1,4 @@
+
 using System.Text.Json;
 using DotnetCoursework.Model;
 
@@ -96,6 +97,11 @@ namespace ExpenseTrackerApp.Services
             List<string> list = user.Tags.ToList();
             return list;
 
+        }
+
+        public User? GetCurrentUser()
+        {
+            return _userContext.CurrentUser;
         }
 
         // Add a new user (e.g., during registration)
