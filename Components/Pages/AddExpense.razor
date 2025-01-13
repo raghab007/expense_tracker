@@ -1,0 +1,84 @@
+@page "/add-expense"
+@using DotnetCoursework.Model
+@using ExpenseTrackerApp.Services
+@inject UserService UserService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+
+<NavMenu></NavMenu>
+<div style="display: flex; flex-direction: column; padding: 20px;">
+    <nav>
+        <!-- Add your NavMenu content here if needed -->
+    </nav>
+
+    <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+        <div style="max-width: 900px; width: 100%;">
+            <!-- Page Title and Navigation Button -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h5 style="color: #007bff; font-size: 1.25rem;">Add Expense</h5>
+                <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="NavigateToHome">
+                    Back to Home
+                </button>
+            </div>
+
+            <!-- Expense Form -->
+            <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                <EditForm Model="@NewExpense" OnValidSubmit="@HandleAddExpense">
+                    <div style="margin-bottom: 15px;">
+                        <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description</label>
+                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description" />
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="date" style="display: block; margin-bottom: 5px; font-weight: bold;">Date</label>
+                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date" />
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount</label>
+                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount" />
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="expense-tag" style="display: block; margin-bottom: 5px; font-weight: bold;">Tag</label>
+                        <InputText id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag" />
+                    </div>
+
+                    <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
+                        Add Expense
+                    </button>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Expense NewExpense = new Expense();
+
+    private async Task HandleAddExpense()
+    {
+        try
+        {
+            // Add the expense for the logged-in user using UserService
+            UserService.AddExpenseForUser(NewExpense);
+
+            // Show a success message
+            Snackbar.Add("Expense added successfully!", Severity.Success);
+
+            // Reset the form
+            NewExpense = new Expense();
+        }
+        catch (Exception ex)
+        {
+            // Show an error message if the user is not logged in
+            Snackbar.Add($"Failed to add expense: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/home");
+    }
+}

@@ -1,0 +1,143 @@
+@page "/view-expenses"
+@using DotnetCoursework.Model
+@using ExpenseTrackerApp.Services
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+
+
+
+<div style="display: flex; flex-direction: column; padding: 20px;">
+    <!-- Page Title and Navigation Button -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h5 style="color: #007bff; font-size: 1.25rem;">Expenses</h5>
+        <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="NavigateToHome">
+            Back to Home
+        </button>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div style="margin-bottom: 20px; background-color: #f9f9f9; padding: 15px; border-radius: 10px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);">
+        <h6 style="margin-bottom: 10px; color: #555;">Filter Expenses</h6>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            <input type="text" placeholder="Search by description" @bind="searchDescription" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+            <input type="number" placeholder="Minimum amount" @bind="minAmount" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px;">
+            <input type="number" placeholder="Maximum amount" @bind="maxAmount" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px;">
+            <input type="date" @bind="startDate" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <input type="date" @bind="endDate" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <button style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;" @onclick="ApplyFilters">Apply Filters</button>
+        </div>
+    </div>
+
+    <div style="padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); border-radius: 10px;">
+        <!-- Table Header -->
+        <div style="margin-bottom: 20px;">
+            <h6 style="font-size: 1rem; color: #333;">Expenses List</h6>
+        </div>
+
+        <!-- Table Content -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+            <tr style="background-color: #f2f2f2;">
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Id</th>
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Date</th>
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Description</th>
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Amount</th>
+                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @if (filteredExpenses.Count > 0)
+            {
+                @foreach (var expense in filteredExpenses)
+                {
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Id</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Date.ToString()</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Description</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">$@expense.Amount</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">
+                            <button style="background-color: #e74c3c; color: white; padding: 5px 10px; cursor: pointer; border: none; border-radius: 5px;" @onclick="() => DeleteExpense(expense.Id)">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 8px; border: 1px solid #ddd; color: #333;">
+                        No expenses available.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+@code {
+    private List<Expense> expenses = new List<Expense>();
+    private List<Expense> filteredExpenses = new List<Expense>();
+    private string searchDescription = string.Empty;
+    private decimal? minAmount;
+    private decimal? maxAmount;
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch expenses for the logged-in user
+            expenses = UserService.GetUserExpenses();
+            filteredExpenses = expenses;
+        }
+        catch (Exception ex)
+        {
+            // Handle the error if the expenses cannot be fetched
+            Console.WriteLine($"Error fetching expenses: {ex.Message}");
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        // filteredExpenses = expenses
+        //     .Where(e => (string.IsNullOrEmpty(searchDescription) || e.Description.Contains(searchDescription, StringComparison.OrdinalIgnoreCase))
+        //                 && (!minAmount.HasValue || e.Amount >= minAmount.Value)
+        //                 && (!maxAmount.HasValue || e.Amount <= maxAmount.Value)
+        //                 && (!startDate.HasValue || e.Date >= startDate.Value)
+        //                 && (!endDate.HasValue || e.Date <= endDate.Value))
+        //     .ToList();
+    }
+
+    private async Task DeleteExpense(int expenseId)
+    {
+        try
+        {
+            // Find the expense to delete from the current list
+            var expenseToDelete = expenses.FirstOrDefault(e => e.Id == expenseId);
+
+            if (expenseToDelete != null)
+            {
+                // Remove the expense from the list
+                expenses.Remove(expenseToDelete);
+                filteredExpenses.Remove(expenseToDelete);
+
+                // Save updated list of expenses back to the JSON file
+                UserService.SaveUsersToJson();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle the error (for now, we just print the error in the console)
+            Console.WriteLine($"Error deleting expense: {ex.Message}");
+        }
+    }
+
+    private async Task NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/home");
+    }
+}
