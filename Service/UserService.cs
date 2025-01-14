@@ -290,6 +290,46 @@ namespace DotnetCourseowork.Service
         {
             return _userContext.CurrentUser.TotalBalance;
         }
+        
+        
+        // Method to get the total number of inflows (credits)
+        public int GetTotalNumberOfInflows()
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            return user.Expenses.Count(e => e.ExpenseType == "Credit");
+        }
+
+// Method to get the total number of outflows (debits)
+        public int GetTotalNumberOfOutflows()
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            return user.Expenses.Count(e => e.ExpenseType == "Debit");
+        }
+
+// Method to calculate the total expenses (inflows + outflows)
+        public double GetTotalExpenses()
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            return user.Expenses.Sum(e => e.Amount); // Sum of both credits and debits
+        }
+
+        
+        
 
     }
 }

@@ -50,6 +50,9 @@
         </div>
     </div>
 
+    <!-- Sort by Date Button -->
+    <button  @onclick="SortByDate">Sort by Date</button>
+
     <!-- Expenses Table -->
     <div class="card p-3">
         <h5 class="text-secondary mb-3">Expense Details</h5>
@@ -97,6 +100,8 @@
     private DateTime? startDate;
     private DateTime? endDate;
     private string descriptionFilter;
+
+    private bool isDateAscending = true; // Track the sort order
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,6 +171,20 @@
         endDate = null;
         descriptionFilter = null;
         filteredExpenses = expenses;
+    }
+
+    private void SortByDate()
+    {
+        if (isDateAscending)
+        {
+            filteredExpenses = filteredExpenses.OrderBy(e => e.Date).ToList();
+        }
+        else
+        {
+            filteredExpenses = filteredExpenses.OrderByDescending(e => e.Date).ToList();
+        }
+
+        isDateAscending = !isDateAscending; // Toggle the sort order
     }
 
     private async Task NavigateToHome()
