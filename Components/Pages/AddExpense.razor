@@ -1,6 +1,5 @@
 @page "/add-expense"
-@using DotnetCoursework.Model
-@using ExpenseTrackerApp.Services
+@using DotnetCourseowork.Models
 @inject UserService UserService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
@@ -10,41 +9,64 @@
     <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
         <h3>Balance: @balance</h3>
         <div style="max-width: 900px; width: 100%;">
-            <!-- Page Title and Navigation Button -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <!-- Page Title -->
+            <div style="margin-bottom: 20px;">
                 <h5 style="color: #007bff; font-size: 1.25rem;">Add Expense</h5>
-                <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="NavigateToHome">
-                    Back to Home
-                </button>
             </div>
 
             <!-- Expense Form -->
-            <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
                 <EditForm Model="@NewExpense" OnValidSubmit="@HandleAddExpense">
                     <div style="margin-bottom: 15px;">
                         <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description</label>
-                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description"/>
+                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description" />
                     </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="date" style="display: block; margin-bottom: 5px; font-weight: bold;">Date</label>
-                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date"/>
+                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date" />
                     </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount</label>
-                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount"/>
+                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount" />
                     </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="expense-tag" style="display: block; margin-bottom: 5px; font-weight: bold;">Tag</label>
-                        <InputText id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag"/>
+                        <InputSelect id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag">
+                            <option value="" disabled>Select a tag</option>
+                            @foreach (var tag in Tags)
+                            {
+                                <option value="@tag">@tag</option>
+                            }
+                        </InputSelect>
                     </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="expense-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Expense Type</label>
+                        <InputSelect id="expense-type" class="form-control" @bind-Value="NewExpense.ExpenseType">
+                            <option value="Debt" selected="selected">Credit</option>
+                            <option value="Credit" selected="selected">Credit</option>
+                            <option value="Debit">Debit</option>
+                        </InputSelect>
+                    </div>                  
 
                     <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
                         Add Expense
                     </button>
                 </EditForm>
+            </div>
+
+            <!-- Add Custom Tag -->
+            <div style="background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                <h6 style="margin-bottom: 15px; font-weight: bold;">Add a Custom Tag</h6>
+                <div style="display: flex; align-items: center;">
+                    <InputText id="new-tag" class="form-control" @bind-Value="NewTag" placeholder="Enter tag" style="margin-right: 10px;" />
+                    <button style="background-color: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="HandleAddTag">
+                        Add Tag
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -53,14 +75,16 @@
 @code {
     private Expense NewExpense = new Expense();
     private string balance = "0";
-    
+    private List<string> Tags = new();
+    private string NewTag = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
-        // Update the balance display based on the current user's balance
         var currentUser = UserService.GetCurrentUser();
         if (currentUser != null)
         {
             balance = currentUser.TotalBalance.ToString();
+            Tags = UserService.GetAllTags();
         }
     }
 
@@ -68,36 +92,52 @@
     {
         try
         {
-            // Add the expense for the logged-in user using UserService
             bool expenseAdded = UserService.AddExpenseForUser(NewExpense);
-            
+
             if (expenseAdded)
             {
-                // Show a success message if the expense was added successfully
                 Snackbar.Add("Expense added successfully!", Severity.Success);
-
-                // Update the balance after adding the expense
                 var currentUser = UserService.GetCurrentUser();
                 balance = currentUser?.TotalBalance.ToString() ?? "0";
-
-                // Reset the form
                 NewExpense = new Expense();
             }
             else
             {
-                // Show an error message if the balance is insufficient
                 Snackbar.Add("Insufficient balance to add the expense", Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            // Show an error message if something went wrong
             Snackbar.Add($"Failed to add expense: {ex.Message}", Severity.Error);
         }
     }
 
-    private void NavigateToHome()
+    private void HandleAddTag()
     {
-        NavigationManager.NavigateTo("/home");
+        try
+        {
+            if (string.IsNullOrWhiteSpace(NewTag))
+            {
+                Snackbar.Add("Tag cannot be empty", Severity.Warning);
+                return;
+            }
+
+            var tagAdded = UserService.AddTagToUser(NewTag);
+
+            if (tagAdded)
+            {
+                Snackbar.Add("Tag added successfully!", Severity.Success);
+                Tags = UserService.GetAllTags();
+                NewTag = string.Empty;
+            }
+            else
+            {
+                Snackbar.Add("Tag already exists", Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to add tag: {ex.Message}", Severity.Error);
+        }
     }
 }

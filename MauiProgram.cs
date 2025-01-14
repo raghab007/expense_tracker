@@ -1,5 +1,5 @@
-﻿using DotnetCoursework.Model;
-using ExpenseTrackerApp.Services; // Make sure to include the correct namespace for your services
+﻿using DotnetCourseowork.Models;
+using DotnetCourseowork.Service;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 

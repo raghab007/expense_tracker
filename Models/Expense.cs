@@ -1,4 +1,4 @@
-namespace DotnetCoursework.Model
+namespace DotnetCourseowork.Models
 {
     public class Expense
     {
@@ -7,7 +7,7 @@ namespace DotnetCoursework.Model
         public int Amount { get; set; }
         public string Description { get; set; }
         public string ExpenseTag { get; set; }
-        
-        public int UserId { get; set; }
+
+        public string ExpenseType { get; set; }
     }
 }

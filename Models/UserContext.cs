@@ -1,4 +1,4 @@
-namespace DotnetCoursework.Model;
+namespace DotnetCourseowork.Models;
 
 public class UserContext
 {

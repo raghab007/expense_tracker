@@ -1,170 +1,171 @@
 @page "/view-expenses"
-@using DotnetCoursework.Model
-@using ExpenseTrackerApp.Services
+@using DotnetCourseowork.Models
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
-<div style="display: flex; flex-direction: column; padding: 20px;">
-    <!-- Page Title and Navigation Button -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h5 style="color: #007bff; font-size: 1.25rem;">Expenses</h5>
-        <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="NavigateToHome">
+<div class="container my-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="text-primary">Manage Expenses</h3>
+        <button class="btn btn-outline-primary" @onclick="NavigateToHome">
             Back to Home
         </button>
     </div>
 
-    <!-- Search and Filter Section -->
-    <div style="margin-bottom: 20px; background-color: #f9f9f9; padding: 15px; border-radius: 10px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);">
-        <h6 style="margin-bottom: 10px; color: #555;">Filter Expenses</h6>
-        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
-            <input type="text" placeholder="Search by description" @bind="searchDescription" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
-            <input type="number" placeholder="Minimum amount" @bind="minAmount" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px;">
-            <input type="number" placeholder="Maximum amount" @bind="maxAmount" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 150px;">
-            <input type="date" @bind="startDate" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <input type="date" @bind="endDate" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-            <button style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;" @onclick="ApplyFilters">Apply Filters</button>
+    <!-- Filters Section -->
+    <div class="card p-3 mb-4">
+        <h5 class="mb-3 text-secondary">Filter Expenses</h5>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-success" @onclick="ShowCreditExpenses">Cash Inflow </button>
+            <button class="btn btn-danger" @onclick="ShowDebitExpenses">Cash Outflow</button>
+            <button class="btn btn-secondary" @onclick="ShowAllExpenses">All Expenses</button>
+        </div>
+
+        <h6 class="text-secondary mb-3">Filter by Amount</h6>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="number" class="form-control" placeholder="Min Amount" @bind="minAmount" />
+            </div>
+            <div class="col-md-6">
+                <input type="number" class="form-control" placeholder="Max Amount" @bind="maxAmount" />
+            </div>
+        </div>
+
+        <h6 class="text-secondary mb-3">Filter by Date</h6>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="date" class="form-control" @bind="startDate" />
+            </div>
+            <div class="col-md-6">
+                <input type="date" class="form-control" @bind="endDate" />
+            </div>
+        </div>
+
+        <h6 class="text-secondary mb-3">Filter by Description</h6>
+        <input type="text" class="form-control mb-3" placeholder="Search by Description" @bind="descriptionFilter" />
+
+        <div>
+            <button class="btn btn-primary me-2" @onclick="ApplyFilters">Apply Filters</button>
+            <button class="btn btn-warning" @onclick="ClearFilters">Clear Filters</button>
         </div>
     </div>
 
-    <div style="padding: 20px; background-color: #fff; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); border-radius: 10px;">
-        <!-- Table Header -->
-        <div style="margin-bottom: 20px;">
-            <h6 style="font-size: 1rem; color: #333;">Expenses List</h6>
-        </div>
-
-        <!-- Table Content -->
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-            <thead>
-            <tr style="background-color: #f2f2f2;">
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Id</th>
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Date</th>
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Description</th>
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Amount</th>
-                <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Actions</th>
-            </tr>
+    <!-- Expenses Table -->
+    <div class="card p-3">
+        <h5 class="text-secondary mb-3">Expense Details</h5>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Expense Type</th>
+                    <th>Expense Tag</th> <!-- Added column for Expense Tag -->
+                </tr>
             </thead>
             <tbody>
-            @if (filteredExpenses.Count > 0)
-            {
-                @foreach (var expense in filteredExpenses)
+                @if (filteredExpenses.Count > 0)
+                {
+                    @foreach (var expense in filteredExpenses)
+                    {
+                        <tr>
+                            <td>@expense.Date.ToString()</td>
+                            <td>@expense.Description</td>
+                            <td>$@expense.Amount</td>
+                            <td>@expense.ExpenseType</td>
+                            <td>@expense.ExpenseTag</td> <!-- Added cell for Expense Tag -->
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Id</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Date.ToString()</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">@expense.Description</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">$@expense.Amount</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">
-                            <button style="background-color: #e74c3c; color: white; padding: 5px 10px; cursor: pointer; border: none; border-radius: 5px;" @onclick="() => ShowDeleteConfirmation(expense.Id)">
-                                Delete
-                            </button>
-                        </td>
+                        <td colspan="6" class="text-center">No expenses available.</td> <!-- Updated colspan -->
                     </tr>
                 }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 8px; border: 1px solid #ddd; color: #333;">
-                        No expenses available.
-                    </td>
-                </tr>
-            }
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Confirmation Modal -->
-@if (isDeleteModalVisible)
-{
-    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center;">
-        <div style="background-color: white; padding: 20px; border-radius: 10px; width: 300px;">
-            <h6 style="color: #333; margin-bottom: 15px;">Are you sure you want to delete this expense?</h6>
-            <div style="display: flex; justify-content: space-between;">
-                <button style="background-color: #e74c3c; color: white; padding: 8px 15px; border: none; border-radius: 5px;" @onclick="ConfirmDelete">
-                    Yes, Delete
-                </button>
-                <button style="background-color: #ccc; color: black; padding: 8px 15px; border: none; border-radius: 5px;" @onclick="CancelDelete">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-}
-
 @code {
     private List<Expense> expenses = new List<Expense>();
     private List<Expense> filteredExpenses = new List<Expense>();
-    private string searchDescription = string.Empty;
+
     private decimal? minAmount;
     private decimal? maxAmount;
     private DateTime? startDate;
     private DateTime? endDate;
-    private int? expenseIdToDelete = null;  // The ID of the expense to delete
-    private bool isDeleteModalVisible = false;
+    private string descriptionFilter;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Fetch expenses for the logged-in user
             expenses = UserService.GetUserExpenses();
-            filteredExpenses = expenses;  // Initially, show all expenses
+            filteredExpenses = expenses; // Initially display all expenses
         }
         catch (Exception ex)
         {
-            // Handle the error if the expenses cannot be fetched
             Console.WriteLine($"Error fetching expenses: {ex.Message}");
         }
     }
 
+    private void ShowCreditExpenses()
+    {
+        filteredExpenses = expenses.Where(e => e.ExpenseType.Equals("credit", StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void ShowDebitExpenses()
+    {
+        filteredExpenses = expenses.Where(e => e.ExpenseType.Equals("debit", StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void ShowAllExpenses()
+    {
+        filteredExpenses = expenses;
+    }
+
     private void ApplyFilters()
     {
-        // Apply filters based on user input
-        filteredExpenses = expenses
-            .Where(e => (string.IsNullOrEmpty(searchDescription) || e.Description.Contains(searchDescription, StringComparison.OrdinalIgnoreCase))  // Search by description
-                        && (!minAmount.HasValue || Convert.ToDecimal(e.Amount) >= minAmount.Value)  // Filter by minimum amount
-                        && (!maxAmount.HasValue || Convert.ToDecimal(e.Amount) <= maxAmount.Value)  // Filter by maximum amount
-                        && (!startDate.HasValue || e.Date >= startDate.Value)  // Filter by start date
-                        && (!endDate.HasValue || e.Date <= endDate.Value))  // Filter by end date
-            .ToList();
-    }
+        filteredExpenses = expenses;
 
-    private void ShowDeleteConfirmation(int expenseId)
-    {
-        // Set the expense ID to delete and show the confirmation modal
-        expenseIdToDelete = expenseId;
-        isDeleteModalVisible = true;
-    }
-
-    private void ConfirmDelete()
-    {
-        if (expenseIdToDelete.HasValue)
+        if (minAmount.HasValue)
         {
-            // Find the expense to delete from the current list
-            var expenseToDelete = expenses.FirstOrDefault(e => e.Id == expenseIdToDelete.Value);
+            filteredExpenses = filteredExpenses.Where(e => e.Amount >= minAmount.Value).ToList();
+        }
 
-            if (expenseToDelete != null)
-            {
-                // Remove the expense from the list
-                expenses.Remove(expenseToDelete);
-                filteredExpenses.Remove(expenseToDelete);
+        if (maxAmount.HasValue)
+        {
+            filteredExpenses = filteredExpenses.Where(e => e.Amount <= maxAmount.Value).ToList();
+        }
 
-                // Save updated list of expenses back to the JSON file
-                UserService.SaveUsersToJson();
-            }
+        if (startDate.HasValue)
+        {
+            filteredExpenses = filteredExpenses.Where(e => e.Date >= startDate.Value).ToList();
+        }
 
-            // Hide the modal after deleting
-            isDeleteModalVisible = false;
-            expenseIdToDelete = null;
+        if (endDate.HasValue)
+        {
+            filteredExpenses = filteredExpenses.Where(e => e.Date <= endDate.Value).ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(descriptionFilter))
+        {
+            filteredExpenses = filteredExpenses
+                .Where(e => e.Description.Contains(descriptionFilter, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 
-    private void CancelDelete()
+    private void ClearFilters()
     {
-        // Just hide the modal without making any changes
-        isDeleteModalVisible = false;
-        expenseIdToDelete = null;
+        minAmount = null;
+        maxAmount = null;
+        startDate = null;
+        endDate = null;
+        descriptionFilter = null;
+        filteredExpenses = expenses;
     }
 
     private async Task NavigateToHome()
