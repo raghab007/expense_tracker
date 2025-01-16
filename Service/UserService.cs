@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
+using DotnetCourseowork.enums;
 using DotnetCourseowork.Models;
 
 namespace DotnetCourseowork.Service
@@ -16,7 +17,7 @@ namespace DotnetCourseowork.Service
         public UserService(UserContext userContext)
         {
             string userHomeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            _expensesFilePath = Path.Combine(userHomeDirectory, "app.json");
+            _expensesFilePath = Path.Combine(userHomeDirectory, "dotnet.json");
             _userContext = userContext;
             LoadUsersFromJson();
         }
@@ -42,7 +43,10 @@ namespace DotnetCourseowork.Service
             }
             else
             {
+                List<Tags> tagList = new List<Tags>((Tags[])Enum.GetValues(typeof(Tags)));
+                List<string> tags = tagList.Select(t => t.ToString()).ToList();
                 User _user = new User();
+                _user.Tags = tags;
                 _user.Username = seedUserName;
                 _user.Password = seedPassword;
                 _users = new List<User>();
@@ -425,6 +429,32 @@ namespace DotnetCourseowork.Service
             
             _userContext.Currency = currency;
         }
+        
+        public bool UpdateExpenseNote(int expenseId, string newNote)
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            var expense = user.Expenses.FirstOrDefault(e => e.Id == expenseId);
+            if (expense == null)
+            {
+                throw new Exception("Expense not found");
+            }
+
+            // Update the Note field of the expense
+            expense.Note = newNote;
+
+            // Save the updated user data to the JSON file
+            SaveUsersToJson();
+
+            return true; // Successfully updated the note
+        }
+        
+        
+        
 
 
 

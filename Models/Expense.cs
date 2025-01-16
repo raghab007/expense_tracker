@@ -13,5 +13,7 @@ namespace DotnetCourseowork.Models
         public string ExpenseTag { get; set; }
 
         public string ExpenseType { get; set; }
+        
+        public string Note { get; set; }
     }
 }

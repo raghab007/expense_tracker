@@ -16,7 +16,7 @@
     <div class="card shadow-sm p-4 mb-4">
         <h5 class="mb-3 text-secondary">Filter Expenses</h5>
 
-        <!-- Row-wise Filters with Counts -->
+        <!-- Expense Type Filters -->
         <div class="row text-center mb-3">
             <div class="col-md-4">
                 <button class="btn btn-outline-success w-100 rounded-pill" @onclick="ShowCreditExpenses">
@@ -35,8 +35,7 @@
             </div>
         </div>
 
-        <!-- Additional Filters -->
-        <h6 class="text-secondary mb-3">Filter by Amount</h6>
+        <!-- Filter by Amount -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <input type="number" class="form-control" placeholder="Min Amount" @bind="minAmount" />
@@ -46,7 +45,7 @@
             </div>
         </div>
 
-        <h6 class="text-secondary mb-3">Filter by Date</h6>
+        <!-- Filter by Date -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <input type="date" class="form-control" @bind="startDate" />
@@ -56,9 +55,23 @@
             </div>
         </div>
 
-        <h6 class="text-secondary mb-3">Filter by Description</h6>
+        <!-- Filter by Description -->
         <input type="text" class="form-control mb-3" placeholder="Search by Description" @bind="descriptionFilter" />
 
+        <!-- Filter by Tag -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <select class="form-control" @bind="selectedTag">
+                    <option value="">Select Tag</option>
+                    @foreach (var tag in tags)
+                    {
+                        <option value="@tag">@tag</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Apply Filters -->
         <div class="row">
             <div class="col-md-6">
                 <button class="btn btn-dark w-100 rounded-pill" @onclick="ApplyFilters">Apply Filters</button>
@@ -83,6 +96,7 @@
                     <th>Amount</th>
                     <th>Expense Type</th>
                     <th>Expense Tag</th>
+                    <th>Note</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -97,8 +111,10 @@
                             <td>$@expense.Amount</td>
                             <td>@expense.ExpenseType</td>
                             <td>@expense.ExpenseTag</td>
+                            <td>@(string.IsNullOrEmpty(expense.Note) ? "No Note" : expense.Note)</td>
                             <td>
-                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(expense)">Delete</button>
+                                <button class="btn btn-warning btn-sm" @onclick="() => OpenNoteModal(expense)">Add/Edit Note</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => OpenDeleteConfirmationModal(expense)">Delete</button>
                             </td>
                         </tr>
                     }
@@ -106,42 +122,91 @@
                 else
                 {
                     <tr>
-                        <td colspan="6" class="text-center">No expenses available.</td>
+                        <td colspan="7" class="text-center">No expenses available.</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+
+    <!-- Modal for Adding/Editing Notes -->
+    @if (isNoteModalVisible)
+    {
+        <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="noteModalLabel">Add/Edit Note</h5>
+                        <button type="button" class="close" @onclick="CloseNoteModal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <textarea class="form-control" @bind="noteText" rows="4"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseNoteModal">Close</button>
+                        <button type="button" class="btn btn-primary" @onclick="SaveNote">Save Note</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Modal for Delete Confirmation -->
+    @if (isDeleteConfirmationModalVisible)
+    {
+        <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                        <button type="button" class="close" @onclick="CloseDeleteConfirmationModal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this expense?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseDeleteConfirmationModal">Cancel</button>
+                        <button type="button" class="btn btn-danger" @onclick="DeleteConfirmedExpense">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
     private List<Expense> expenses = new List<Expense>();
     private List<Expense> filteredExpenses = new List<Expense>();
-
+    private List<string> tags = new List<string>(); // List to hold unique tags
     private decimal? minAmount;
     private decimal? maxAmount;
     private DateTime? startDate;
     private DateTime? endDate;
     private string descriptionFilter;
-
-    private bool isDateAscending = true;
+    private string selectedTag;
 
     private int creditCount;
     private int debitCount;
     private int totalCount;
 
+    private bool isNoteModalVisible = false;
+    private bool isDeleteConfirmationModalVisible = false;
+    private string noteText = string.Empty;
+    private Expense selectedExpense;
+    private Expense expenseToDelete;
+
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            expenses = UserService.GetUserExpenses();
-            filteredExpenses = expenses;
-            UpdateCounts();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching expenses: {ex.Message}");
-        }
+        expenses = UserService.GetUserExpenses();
+        filteredExpenses = expenses;
+        UpdateCounts();
+
+        // Populate the tags list with unique tags
+        tags = expenses.Select(e => e.ExpenseTag).Distinct().ToList();
     }
 
     private void ShowCreditExpenses()
@@ -181,8 +246,15 @@
         if (!string.IsNullOrWhiteSpace(descriptionFilter))
             filteredExpenses = filteredExpenses.Where(e => e.Description.Contains(descriptionFilter, StringComparison.OrdinalIgnoreCase)).ToList();
 
+        if (!string.IsNullOrWhiteSpace(selectedTag))
+        {
+            // Ensure the tag is not null before filtering
+            filteredExpenses = filteredExpenses.Where(e => e.ExpenseTag != null && e.ExpenseTag.Equals(selectedTag, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
         UpdateCounts();
     }
+
 
     private void ClearFilters()
     {
@@ -191,28 +263,17 @@
         startDate = null;
         endDate = null;
         descriptionFilter = null;
+        selectedTag = null;
         filteredExpenses = expenses;
         UpdateCounts();
     }
 
     private void SortByDate()
     {
-        filteredExpenses = isDateAscending
-            ? filteredExpenses.OrderBy(e => e.Date).ToList()
-            : filteredExpenses.OrderByDescending(e => e.Date).ToList();
-
-        isDateAscending = !isDateAscending;
+        filteredExpenses = filteredExpenses.OrderByDescending(e => e.Date).ToList();
     }
 
     private async Task NavigateToHome() => NavigationManager.NavigateTo("/home");
-
-    private void ConfirmDelete(Expense expense)
-    {
-        if (confirm($"Are you sure you want to delete the expense: {expense.Description}?"))
-        {
-            DeleteExpense(expense);
-        }
-    }
 
     private void DeleteExpense(Expense expense)
     {
@@ -221,15 +282,61 @@
         UpdateCounts();
     }
 
+    private void OpenDeleteConfirmationModal(Expense expense)
+    {
+        expenseToDelete = expense;
+        isDeleteConfirmationModalVisible = true;
+    }
+
+    private void CloseDeleteConfirmationModal()
+    {
+        isDeleteConfirmationModalVisible = false;
+        expenseToDelete = null;
+    }
+
+    private void DeleteConfirmedExpense()
+    {
+        if (expenseToDelete != null)
+        {
+            DeleteExpense(expenseToDelete);
+        }
+        CloseDeleteConfirmationModal();
+    }
+
+    private void OpenNoteModal(Expense expense)
+    {
+        selectedExpense = expense;
+        noteText = expense.Note ?? string.Empty;
+        isNoteModalVisible = true;
+    }
+
+    private void CloseNoteModal()
+    {
+        isNoteModalVisible = false;
+        selectedExpense = null;
+        noteText = string.Empty;
+    }
+
+    private void SaveNote()
+    {
+        if (selectedExpense != null)
+        {
+            // Call UpdateExpenseNote method to update the note
+            var result = UserService.UpdateExpenseNote(selectedExpense.Id, noteText);
+
+            if (result)
+            {
+                selectedExpense.Note = noteText;
+                CloseNoteModal();
+                UpdateCounts();
+            }
+        }
+    }
+
     private void UpdateCounts()
     {
         creditCount = expenses.Count(e => e.ExpenseType.Equals("credit", StringComparison.OrdinalIgnoreCase));
         debitCount = expenses.Count(e => e.ExpenseType.Equals("debit", StringComparison.OrdinalIgnoreCase));
         totalCount = expenses.Count;
-    }
-
-    private bool confirm(string message)
-    {
-        return true; // Replace with a proper JS Interop confirmation dialog
     }
 }

@@ -23,8 +23,11 @@
                     <MudItem xs="12" sm="4">
                         <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth OnClick="@(() => NavigateToViewDebts())">View Debts</MudButton>
                     </MudItem>
+                    <!-- Button to View Pending Debts -->
+                    <MudItem xs="12" sm="4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" FullWidth OnClick="@(() => NavigateToPendingDebts())">View Pending Debts</MudButton>
+                    </MudItem>
                 </MudGrid>
-
             </div>
         
         
@@ -96,22 +99,7 @@
                     </MudItem>
                 }
             </MudGrid>
-
-            <!-- Bar Chart for Financial Overview (e.g., Total Inflow vs Outflow) -->
-            <MudGrid Container Spacing="6" Class="mb-6">
-                <MudItem xs="12" sm="6" md="4">
-                    <MudPaper Class="pa-4" Elevation="3">
-                        <MudChart ChartType="ChartType.Bar" Width="100%" Height="300px" InputData="@(new double[] { totalInflow, totalOutflow })" InputLabels="@(new string[] { "Inflow", "Outflow" })">
-                            <CustomGraphics>
-                                <text class="bar-chart-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">Financial Overview</text>
-                                <text class="bar-chart-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="5">@totalInflow vs @totalOutflow</text>
-                            </CustomGraphics>
-                        </MudChart>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Total Inflow vs Total Outflow</MudText>
-                    </MudPaper>
-                </MudItem>
-            </MudGrid>
-
+            
             <!-- Recent Transactions and Debts Tables -->
             <MudGrid Container Spacing="6" Class="mt-6">
                 <MudItem xs="12">
@@ -162,8 +150,6 @@
                 </MudItem>
             </MudGrid>
 
-            <!-- Action Buttons -->
-          
         </MudContainer>
     </MudMainContent>
 </MudLayout>
@@ -267,5 +253,10 @@
     private void NavigateToViewDebts()
     {
         NavigationManager.NavigateTo("/debts");
+    }
+
+    private void NavigateToPendingDebts()
+    {
+        NavigationManager.NavigateTo("/pendingdebts");
     }
 }
