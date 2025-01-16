@@ -1,63 +1,108 @@
 ﻿@page "/home"
+@using DotnetCourseowork.Models
 @inject UserService UserService
+@inject NavigationManager NavigationManager
+@using MudBlazor
 
-<NavMenu></NavMenu>
 <MudLayout>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large">
             <!-- Dashboard Header -->
-            <MudGrid Container Spacing="4">
-                <!-- Total Inflow Card -->
-                <MudItem xs="12" sm="6" md="4">
-                    <MudCard Class="pa-4" Style="background-color: #e0f7fa; border-radius: 12px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary">Total Inflow</MudText>
+            <MudGrid Container Spacing="4" Class="mb-4">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary">Expense Tracker Dashboard</MudText>
+                </MudItem>
+            </MudGrid>
+
+            <!-- Financial Overview -->
+            <MudGrid Container Spacing="4" Class="mb-4">
+                @foreach (var card in FinancialCards)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudCard Class="pa-4">
+                            <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">@card.Title</MudText>
+                            <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Dark">
+                                $@card.Value
+                            </MudText>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            <!-- Credit/Debit/Debt Statistics -->
+            <MudGrid Container Spacing="4" Class="mb-4">
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Credits</MudText>
                         <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary">
-                            $@totalInflow
+                            @totalCredits
                         </MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Dark">Total incoming funds this month</MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Dark">Transactions: @totalInflowCount</MudText> <!-- Total inflow transactions -->
                     </MudCard>
                 </MudItem>
-
-                <!-- Total Outflow Card -->
-                <MudItem xs="12" sm="6" md="4">
-                    <MudCard Class="pa-4" Style="background-color: #ffebee; border-radius: 12px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Error">Total Outflow</MudText>
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debits</MudText>
                         <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Error">
-                            $@totalOutflow
+                            @totalDebits
                         </MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Dark">Total spending this month</MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Dark">Transactions: @totalOutflowCount</MudText> <!-- Total outflow transactions -->
                     </MudCard>
                 </MudItem>
-
-                <!-- Current Balance Card -->
-                <MudItem xs="12" sm="6" md="4">
-                    <MudCard Class="pa-4" Style="background-color: #c8e6c9; border-radius: 12px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Success">Current Balance</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Success">
-                            $@currentBalance
+                <MudItem xs="12" sm="4">
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debts</MudText>
+                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Info">
+                            @totalDebts
                         </MudText>
-                        <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Dark">Available funds after all transactions</MudText>
                     </MudCard>
                 </MudItem>
             </MudGrid>
 
-            <!-- Financial Overview Charts -->
-            <MudGrid Container Spacing="4">
-                <!-- Inflow vs Outflow Bar Chart -->
-                <MudItem xs="12" sm="6">
-                    <MudCard Class="pa-4" Style="border-radius: 12px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary">Inflow vs Outflow (Monthly)</MudText>
-                        <MudChart ChartType="ChartType.Bar" ChartSeries="@series" XAxisLabels="@XAxisLabels" Width="100%" Height="300px" />
+            <!-- Recent Transactions -->
+            <MudGrid Container Spacing="4" Class="mt-4">
+                <MudItem xs="12">
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" Align="Align.Left" Color="Color.Primary">Recent Expenses</MudText>
+                        <MudTable Items="@recentExpenses" Hover="true">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Amount</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Date.ToString()</MudTd>
+                                <MudTd>@context.Description</MudTd>
+                                <MudTd>$@context.Amount</MudTd>
+                                <MudTd>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => DeleteExpense(context))">Delete</MudButton>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
                     </MudCard>
                 </MudItem>
+            </MudGrid>
 
-                <!-- Expense Breakdown Pie Chart -->
-                <MudItem xs="12" sm="6">
-                    <MudCard Class="pa-4" Style="border-radius: 12px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary">Expense Breakdown</MudText>
-                        <MudChart ChartType="ChartType.Pie" InputData="@expenseData" InputLabels="@expenseLabels" Width="100%" Height="300px" />
+            <!-- Debts Table -->
+            <MudGrid Container Spacing="4" Class="mt-4">
+                <MudItem xs="12">
+                    <MudCard Class="pa-4">
+                        <MudText Typo="Typo.h6" Align="Align.Left" Color="Color.Primary">Debts</MudText>
+                        <MudTable Items="@debts" Hover="true">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Amount</MudTh>
+                                <MudTh>Actions</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Date.ToString()</MudTd>
+                                <MudTd>@context.Description</MudTd>
+                                <MudTd>$@context.Amount</MudTd>
+                                <MudTd>
+                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => DeleteDebt(context))">Delete</MudButton>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
                     </MudCard>
                 </MudItem>
             </MudGrid>
@@ -66,32 +111,46 @@
 </MudLayout>
 
 @code {
+    private List<Expense> recentExpenses = new();
+    private List<Debt> debts = new();
     private double totalInflow = 0;
     private double totalOutflow = 0;
     private double currentBalance = 0;
-    private int totalInflowCount = 0;  // Total number of inflow transactions
-    private int totalOutflowCount = 0; // Total number of outflow transactions
 
-    private List<ChartSeries> series = new List<ChartSeries>
+    private double totalCredits = 0;
+    private double totalDebits = 0;
+    private double totalDebts = 0;
+
+    private List<(string Title, string Color, double Value)> FinancialCards => new()
     {
-        new ChartSeries() { Name = "Inflow", Data = new double[] { 50, 60, 70, 80, 90, 100 } },
-        new ChartSeries() { Name = "Outflow", Data = new double[] { 40, 50, 60, 65, 70, 80 } }
+        ("Total Inflow", "Color.Primary", totalInflow),
+        ("Total Outflow", "Color.Error", totalOutflow),
+        ("Current Balance", "Color.Success", currentBalance)
     };
-
-    private string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun" };
-
-    private double[] expenseData = { 50, 25, 20, 5 };
-    private string[] expenseLabels = { "Food", "Transport", "Entertainment", "Other" };
 
     protected override async Task OnInitializedAsync()
     {
-        // Fetch and calculate the total inflow, outflow, and current balance
         totalInflow = UserService.GetTotalInflow();
         totalOutflow = UserService.GetTotalOutflow();
-        currentBalance = UserService.GetRemaingBalance();
-        
-        // Fetch and calculate the total number of transactions
-        totalInflowCount = UserService.GetTotalNumberOfInflows();
-        totalOutflowCount = UserService.GetTotalNumberOfOutflows();
+        currentBalance = UserService.GetCurrentUser().TotalBalance;
+
+        recentExpenses = UserService.GetRecentTransactions(5);
+        debts = UserService.GetAllDebtsForUser();
+
+        totalCredits = UserService.GetTotalInflow();
+        totalDebits = UserService.GetTotalOutflow();
+        totalDebts = UserService.GetTotalDebts();
+    }
+
+    private void DeleteExpense(Expense expense)
+    {
+        UserService.DeleteExpense(expense.Id);
+        recentExpenses.Remove(expense);
+    }
+
+    private void DeleteDebt(Debt debt)
+    {
+        UserService.DeleteDebt(debt.Id);
+        debts.Remove(debt);
     }
 }

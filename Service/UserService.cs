@@ -10,10 +10,13 @@ namespace DotnetCourseowork.Service
         private List<User> _users;
         private readonly UserContext _userContext;
 
+        private string seedUserName = "raghab";
+        private string seedPassword = "raghab";
+
         public UserService(UserContext userContext)
         {
             string userHomeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            _expensesFilePath = Path.Combine(userHomeDirectory, "expenses.json");
+            _expensesFilePath = Path.Combine(userHomeDirectory, "app.json");
             _userContext = userContext;
             LoadUsersFromJson();
         }
@@ -32,32 +35,18 @@ namespace DotnetCourseowork.Service
             if (File.Exists(_expensesFilePath))
             {
                 var jsonData = File.ReadAllText(_expensesFilePath);
-                _users = JsonSerializer.Deserialize<List<User>>(jsonData) ?? new List<User>();
-                foreach (var user in _users)
+                if (!string.IsNullOrEmpty(jsonData))
                 {
-                    if (user.Expenses == null)
-                    {
-                        user.Expenses = new List<Expense>();
-                    }else if (user.Debts == null)
-                    {
-                        user.Debts = new List<Debt>();
-                    }else if (user.Tags == null)
-                    {
-                        
-                        user.Tags = new List<String>();
-                    }
-                    {
-                        
-                    }
-                }
-
-                {
-                    
+                    _users = JsonSerializer.Deserialize<List<User>>(jsonData) ?? new List<User>();
                 }
             }
             else
             {
+                User _user = new User();
+                _user.Username = seedUserName;
+                _user.Password = seedPassword;
                 _users = new List<User>();
+                _users.Add(_user);
                 SaveUsersToJson(); // Create the file if it doesn't exist
             }
         }
@@ -213,7 +202,7 @@ namespace DotnetCourseowork.Service
                 user.Debts.Add(debt);
 
                 // Update the user's balance based on the debt amount
-                user.TotalBalance -= debt.Amount;
+                user.TotalBalance += debt.Amount;
 
                 // Persist the changes to the data storage
                 SaveUsersToJson(); // Ensure this persists data correctly
@@ -243,11 +232,7 @@ namespace DotnetCourseowork.Service
             {
                 throw new Exception("Debt not found");
             }
-
-            if (debt.Paid)
-            {
-                return false; // Debt is already marked as paid
-            }
+            
 
             // Mark the debt as paid
             debt.Paid = true;
@@ -328,8 +313,108 @@ namespace DotnetCourseowork.Service
             return user.Expenses.Sum(e => e.Amount); // Sum of both credits and debits
         }
 
+        // Method to get recent transactions for the currently logged-in user
+        public List<Expense> GetRecentTransactions(int count)
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            // Order expenses by date (assuming `Date` is a DateTime property in the Expense class) and take the latest ones
+            return user.Expenses
+                .OrderByDescending(e => e.Date)
+                .Take(count)
+                .ToList();
+        }
         
         
+        // Method to delete an expense by ID
+       
+
+// Method to delete a debt by ID
+      
+        
+        // Method to delete an expense by ID
+        public bool DeleteExpense(int expenseId)
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            var expense = user.Expenses.FirstOrDefault(e => e.Id == expenseId);
+            if (expense == null)
+            {
+                throw new Exception("Expense not found");
+            }
+
+            // Update the user's balance based on the type of expense being removed
+            if (expense.ExpenseType == "Debit")
+            {
+                user.TotalBalance += expense.Amount; // Refund the deducted amount
+            }
+            else if (expense.ExpenseType == "Credit")
+            {
+                user.TotalBalance -= expense.Amount; // Deduct the credited amount
+            }
+
+            user.Expenses.Remove(expense); // Remove the expense
+            SaveUsersToJson(); // Persist the updated data
+
+            return true; // Return true if the expense was successfully deleted
+        }
+
+// Method to delete a debt by ID
+        public bool DeleteDebt(int debtId)
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            var debt = user.Debts.FirstOrDefault(d => d.Id == debtId);
+            if (debt == null)
+            {
+                throw new Exception("Debt not found");
+            }
+
+            // Only unpaid debts can be deleted
+            if (debt.Paid)
+            {
+                throw new Exception("Cannot delete a debt that has already been paid");
+            }
+
+            // Adjust the user's balance if the debt is being removed
+            user.TotalBalance += debt.Amount;
+
+            user.Debts.Remove(debt); // Remove the debt
+            SaveUsersToJson(); // Persist the updated data
+
+            return true; // Return true if the debt was successfully deleted
+        }
+
+
+        public bool AddCustomSource(string source)
+        {
+            return true;
+        }
+        
+        public double GetTotalDebts()
+        {
+            var user = _userContext.CurrentUser;
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            return user.Debts.Where(d => !d.Paid).Sum(d => d.Amount);
+        }
+        
+
 
     }
 }

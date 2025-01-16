@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject  UserService UserService;
 @* Required *@
 <MudThemeProvider />
 <MudPopoverProvider />
@@ -10,7 +11,14 @@
 <MudSnackbarProvider />
 
 <div class="page">
-      
+
+    @if (UserService.GetCurrentUser()!=null)
+    {
+        <div class="sidebar">
+            <NavMenu></NavMenu>
+        </div>
+    }
+    
     <main>
         <article class="content px-4">
             @Body

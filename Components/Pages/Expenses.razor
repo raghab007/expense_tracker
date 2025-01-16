@@ -13,14 +13,29 @@
     </div>
 
     <!-- Filters Section -->
-    <div class="card p-3 mb-4">
+    <div class="card shadow-sm p-4 mb-4">
         <h5 class="mb-3 text-secondary">Filter Expenses</h5>
-        <div class="d-flex flex-wrap gap-2 mb-3">
-            <button class="btn btn-success" @onclick="ShowCreditExpenses">Cash Inflow </button>
-            <button class="btn btn-danger" @onclick="ShowDebitExpenses">Cash Outflow</button>
-            <button class="btn btn-secondary" @onclick="ShowAllExpenses">All Expenses</button>
+
+        <!-- Row-wise Filters with Counts -->
+        <div class="row text-center mb-3">
+            <div class="col-md-4">
+                <button class="btn btn-outline-success w-100 rounded-pill" @onclick="ShowCreditExpenses">
+                    Cash Inflow (@creditCount)
+                </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-outline-danger w-100 rounded-pill" @onclick="ShowDebitExpenses">
+                    Cash Outflow (@debitCount)
+                </button>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-outline-dark w-100 rounded-pill" @onclick="ShowAllExpenses">
+                    All Expenses (@totalCount)
+                </button>
+            </div>
         </div>
 
+        <!-- Additional Filters -->
         <h6 class="text-secondary mb-3">Filter by Amount</h6>
         <div class="row mb-3">
             <div class="col-md-6">
@@ -44,17 +59,21 @@
         <h6 class="text-secondary mb-3">Filter by Description</h6>
         <input type="text" class="form-control mb-3" placeholder="Search by Description" @bind="descriptionFilter" />
 
-        <div>
-            <button class="btn btn-primary me-2" @onclick="ApplyFilters">Apply Filters</button>
-            <button class="btn btn-warning" @onclick="ClearFilters">Clear Filters</button>
+        <div class="row">
+            <div class="col-md-6">
+                <button class="btn btn-dark w-100 rounded-pill" @onclick="ApplyFilters">Apply Filters</button>
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-secondary w-100 rounded-pill" @onclick="ClearFilters">Clear Filters</button>
+            </div>
         </div>
     </div>
 
     <!-- Sort by Date Button -->
-    <button  @onclick="SortByDate">Sort by Date</button>
+    <button class="btn btn-dark mb-3 rounded-pill" @onclick="SortByDate">Sort by Date</button>
 
     <!-- Expenses Table -->
-    <div class="card p-3">
+    <div class="card shadow-sm p-3">
         <h5 class="text-secondary mb-3">Expense Details</h5>
         <table class="table table-bordered table-striped">
             <thead class="thead-dark">
@@ -63,7 +82,8 @@
                     <th>Description</th>
                     <th>Amount</th>
                     <th>Expense Type</th>
-                    <th>Expense Tag</th> <!-- Added column for Expense Tag -->
+                    <th>Expense Tag</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -76,14 +96,17 @@
                             <td>@expense.Description</td>
                             <td>$@expense.Amount</td>
                             <td>@expense.ExpenseType</td>
-                            <td>@expense.ExpenseTag</td> <!-- Added cell for Expense Tag -->
+                            <td>@expense.ExpenseTag</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmDelete(expense)">Delete</button>
+                            </td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="6" class="text-center">No expenses available.</td> <!-- Updated colspan -->
+                        <td colspan="6" class="text-center">No expenses available.</td>
                     </tr>
                 }
             </tbody>
@@ -101,14 +124,19 @@
     private DateTime? endDate;
     private string descriptionFilter;
 
-    private bool isDateAscending = true; // Track the sort order
+    private bool isDateAscending = true;
+
+    private int creditCount;
+    private int debitCount;
+    private int totalCount;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             expenses = UserService.GetUserExpenses();
-            filteredExpenses = expenses; // Initially display all expenses
+            filteredExpenses = expenses;
+            UpdateCounts();
         }
         catch (Exception ex)
         {
@@ -119,16 +147,19 @@
     private void ShowCreditExpenses()
     {
         filteredExpenses = expenses.Where(e => e.ExpenseType.Equals("credit", StringComparison.OrdinalIgnoreCase)).ToList();
+        UpdateCounts();
     }
 
     private void ShowDebitExpenses()
     {
         filteredExpenses = expenses.Where(e => e.ExpenseType.Equals("debit", StringComparison.OrdinalIgnoreCase)).ToList();
+        UpdateCounts();
     }
 
     private void ShowAllExpenses()
     {
         filteredExpenses = expenses;
+        UpdateCounts();
     }
 
     private void ApplyFilters()
@@ -136,31 +167,21 @@
         filteredExpenses = expenses;
 
         if (minAmount.HasValue)
-        {
             filteredExpenses = filteredExpenses.Where(e => e.Amount >= minAmount.Value).ToList();
-        }
 
         if (maxAmount.HasValue)
-        {
             filteredExpenses = filteredExpenses.Where(e => e.Amount <= maxAmount.Value).ToList();
-        }
 
         if (startDate.HasValue)
-        {
             filteredExpenses = filteredExpenses.Where(e => e.Date >= startDate.Value).ToList();
-        }
 
         if (endDate.HasValue)
-        {
             filteredExpenses = filteredExpenses.Where(e => e.Date <= endDate.Value).ToList();
-        }
 
         if (!string.IsNullOrWhiteSpace(descriptionFilter))
-        {
-            filteredExpenses = filteredExpenses
-                .Where(e => e.Description.Contains(descriptionFilter, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-        }
+            filteredExpenses = filteredExpenses.Where(e => e.Description.Contains(descriptionFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        UpdateCounts();
     }
 
     private void ClearFilters()
@@ -171,24 +192,44 @@
         endDate = null;
         descriptionFilter = null;
         filteredExpenses = expenses;
+        UpdateCounts();
     }
 
     private void SortByDate()
     {
-        if (isDateAscending)
-        {
-            filteredExpenses = filteredExpenses.OrderBy(e => e.Date).ToList();
-        }
-        else
-        {
-            filteredExpenses = filteredExpenses.OrderByDescending(e => e.Date).ToList();
-        }
+        filteredExpenses = isDateAscending
+            ? filteredExpenses.OrderBy(e => e.Date).ToList()
+            : filteredExpenses.OrderByDescending(e => e.Date).ToList();
 
-        isDateAscending = !isDateAscending; // Toggle the sort order
+        isDateAscending = !isDateAscending;
     }
 
-    private async Task NavigateToHome()
+    private async Task NavigateToHome() => NavigationManager.NavigateTo("/home");
+
+    private void ConfirmDelete(Expense expense)
     {
-        NavigationManager.NavigateTo("/home");
+        if (confirm($"Are you sure you want to delete the expense: {expense.Description}?"))
+        {
+            DeleteExpense(expense);
+        }
+    }
+
+    private void DeleteExpense(Expense expense)
+    {
+        expenses.Remove(expense);
+        filteredExpenses.Remove(expense);
+        UpdateCounts();
+    }
+
+    private void UpdateCounts()
+    {
+        creditCount = expenses.Count(e => e.ExpenseType.Equals("credit", StringComparison.OrdinalIgnoreCase));
+        debitCount = expenses.Count(e => e.ExpenseType.Equals("debit", StringComparison.OrdinalIgnoreCase));
+        totalCount = expenses.Count;
+    }
+
+    private bool confirm(string message)
+    {
+        return true; // Replace with a proper JS Interop confirmation dialog
     }
 }

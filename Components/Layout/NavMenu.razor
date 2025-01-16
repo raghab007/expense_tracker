@@ -1,40 +1,88 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">DotnetCourseowork</a>
-    </div>
-</div>
+﻿@inherits LayoutComponentBase
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<MudDrawer Clipped="true" Open="true" Elevation="1" Color="Color.Primary" Style="height: 100vh; width: 250px;">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6" Color="Color.Inherit" Align="Align.Center" Style="font-size: 24px;">Expense Tracker</MudText>
+    </MudDrawerHeader>
+    <MudNavMenu>
+        <!-- Dashboard -->
+        <MudNavLink Href="/home" Icon="@Icons.Material.Filled.Dashboard" Color="Color.Inherit" Style="padding: 16px; font-size: 20px; color: white;" ActiveClass="active-link">
+            Dashboard
+        </MudNavLink>
+        
+        <!-- Add Expense -->
+        <MudNavLink Href="/add-expense" Icon="@Icons.Material.Filled.AddCircleOutline" Color="Color.Inherit" Style="padding: 16px; font-size: 20px; color: white;" ActiveClass="active-link">
+            Add Expense
+        </MudNavLink>
+        
+        <!-- View Expenses -->
+        <MudNavLink Href="/view-expenses" Icon="@Icons.Material.Filled.List" Color="Color.Inherit" Style="padding: 16px; font-size: 20px; color: white;" ActiveClass="active-link">
+            View Expenses
+        </MudNavLink>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="home" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        <!-- Debts -->
+        <MudNavLink Href="/debts" Icon="@Icons.Material.Filled.List" Color="Color.Inherit" Style="padding: 16px; font-size: 20px; color: white;" ActiveClass="active-link">
+            Debts 
+        </MudNavLink>
+        
+        <!-- Settings -->
+        <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" Style="padding: 16px; font-size: 20px; color: white;" ActiveClass="active-link">
+            Settings
+        </MudNavLink>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Login
-            </NavLink>
-        </div>
+       
+    </MudNavMenu>
+</MudDrawer>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Signup
-            </NavLink>
-        </div>
+<style>
+    /* Active link color */
+    .active-link {
+        background-color: #3f51b5; /* Highlight color for active link */
+        color: white !important; /* Ensure text remains white */
+        border-radius: 5px; /* Rounded corners for active link */
+    }
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+    /* Hover effect */
+    .mud-nav-link {
+        transition: background-color 0.3s ease-in-out, transform 0.2s;
+        border-radius: 5px; /* Smooth border radius */
+    }
+
+    .mud-nav-link:hover {
+        background-color: #303f9f; /* Hover effect */
+        transform: scale(1.05); /* Slightly increase size on hover */
+    }
+
+    /* Bigger icons and text */
+    .mud-nav-link .mud-icon {
+        font-size: 30px !important; /* Increase icon size */
+    }
+
+    .mud-nav-link {
+        font-size: 20px !important; /* Increase text size */
+    }
+
+    /* Overall styling for nav items */
+    .mud-nav-menu {
+        background-color: #2c3e50; /* Darker background for nav */
+        color: white; /* White text */
+        padding: 0;
+    }
+
+    .mud-nav-link {
+        padding: 16px 24px; /* Increased padding for better spacing */
+        transition: background-color 0.3s, transform 0.2s ease-in-out;
+    }
+
+    .mud-nav-link:hover {
+        background-color: #34495e; /* Lighter hover color */
+    }
+
+    /* Styling for the drawer header */
+    .mud-drawer-header {
+        background-color: #2980b9; /* Blue header for the drawer */
+        color: white;
+        padding: 16px;
+        text-align: center;
+    }
+</style>

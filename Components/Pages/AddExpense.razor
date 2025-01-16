@@ -4,69 +4,75 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-<NavMenu></NavMenu>
-<div style="display: flex; flex-direction: column; padding: 20px;">
-    <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+<div class="container mt-4">
+    <div class="text-center mb-4">
         <h3>Balance: @balance</h3>
-        <div style="max-width: 900px; width: 100%;">
-            <!-- Page Title -->
-            <div style="margin-bottom: 20px;">
-                <h5 style="color: #007bff; font-size: 1.25rem;">Add Expense</h5>
-            </div>
+    </div>
+    <div class="card shadow p-4">
+        <!-- Page Title -->
+        <div class="mb-3">
+            <h5 class="text-primary">Add Expense</h5>
+        </div>
 
-            <!-- Expense Form -->
-            <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
-                <EditForm Model="@NewExpense" OnValidSubmit="@HandleAddExpense">
-                    <div style="margin-bottom: 15px;">
-                        <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description</label>
-                        <InputText id="description" class="form-control" @bind-Value="NewExpense.Description" />
-                    </div>
+        <!-- Expense Form -->
+        <div class="mb-4">
+            <EditForm Model="@NewExpense" OnValidSubmit="@HandleAddExpense">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="date" style="display: block; margin-bottom: 5px; font-weight: bold;">Date</label>
-                        <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date" />
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount</label>
-                        <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount" />
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label for="expense-tag" style="display: block; margin-bottom: 5px; font-weight: bold;">Tag</label>
-                        <InputSelect id="expense-tag" class="form-control" @bind-Value="NewExpense.ExpenseTag">
-                            <option value="" disabled>Select a tag</option>
-                            @foreach (var tag in Tags)
-                            {
-                                <option value="@tag">@tag</option>
-                            }
-                        </InputSelect>
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <label for="expense-type" style="display: block; margin-bottom: 5px; font-weight: bold;">Expense Type</label>
-                        <InputSelect id="expense-type" class="form-control" @bind-Value="NewExpense.ExpenseType">
-                            <option value="Debt" selected="selected">Credit</option>
-                            <option value="Credit" selected="selected">Credit</option>
-                            <option value="Debit">Debit</option>
-                        </InputSelect>
-                    </div>                  
-
-                    <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
-                        Add Expense
-                    </button>
-                </EditForm>
-            </div>
-
-            <!-- Add Custom Tag -->
-            <div style="background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                <h6 style="margin-bottom: 15px; font-weight: bold;">Add a Custom Tag</h6>
-                <div style="display: flex; align-items: center;">
-                    <InputText id="new-tag" class="form-control" @bind-Value="NewTag" placeholder="Enter tag" style="margin-right: 10px;" />
-                    <button style="background-color: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="HandleAddTag">
-                        Add Tag
-                    </button>
+                <div class="mb-3">
+                    <label for="description" class="form-label fw-bold">Description</label>
+                    <InputText id="description" class="form-control" @bind-Value="NewExpense.Description" />
                 </div>
+
+                <div class="mb-3">
+                    <label for="date" class="form-label fw-bold">Date</label>
+                    <InputDate id="date" class="form-control" @bind-Value="NewExpense.Date" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-label fw-bold">Amount</label>
+                    <InputNumber id="amount" class="form-control" @bind-Value="NewExpense.Amount" />
+                    @if (NewExpense.Amount <= 0)
+                    {
+                        <span class="text-danger">Amount must be greater than 0</span>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    <label for="expense-tag" class="form-label fw-bold">Tag</label>
+                    <InputSelect id="expense-tag" class="form-select" @bind-Value="NewExpense.ExpenseTag">
+                        <option value="">Select Tag</option>
+                        @foreach (var tag in Tags)
+                        {
+                            <option value="@tag">@tag</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label for="expense-type" class="form-label fw-bold">Expense Type</label>
+                    <InputSelect id="expense-type" class="form-select" @bind-Value="NewExpense.ExpenseType">
+                        <option value="">Select Type</option>
+                        <option value="Credit">Credit</option>
+                        <option value="Debit">Debit</option>
+                    </InputSelect>
+                </div>
+
+                <button type="submit" class="btn btn-dark btn-block w-100 mt-3">
+                    Add Expense
+                </button>
+            </EditForm>
+        </div>
+
+        <!-- Add Custom Tag -->
+        <div>
+            <h6 class="fw-bold mb-3">Add a Custom Tag</h6>
+            <div class="d-flex">
+                <InputText id="new-tag" class="form-control me-2" @bind-Value="NewTag" placeholder="Enter tag" />
+                <button class="btn btn-dark" @onclick="HandleAddTag">
+                    Add Tag
+                </button>
             </div>
         </div>
     </div>
@@ -90,6 +96,12 @@
 
     private async Task HandleAddExpense()
     {
+        if (NewExpense.Amount <= 0)
+        {
+            Snackbar.Add("Amount must be greater than 0", Severity.Warning);
+            return;
+        }
+
         try
         {
             bool expenseAdded = UserService.AddExpenseForUser(NewExpense);

@@ -4,74 +4,84 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-<NavMenu></NavMenu>
-
-<div style="display: flex; flex-direction: column; padding: 20px;">
-    <div style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+<div class="container mt-4">
+    <div class="d-flex flex-column align-items-center">
         <h3>Balance: @balance</h3>
-        <div style="max-width: 900px; width: 100%;">
+        <div class="w-100" style="max-width: 900px;">
+
             <!-- Page Title -->
-            <div style="margin-bottom: 20px;">
-                <h5 style="color: #007bff; font-size: 1.25rem;">Add Debt</h5>
+            <div class="mb-3">
+                <h5 class="text-primary">Add Debt</h5>
             </div>
 
             <!-- Debt Form -->
-            <div style="background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px;">
+            <div class="bg-white p-4 rounded shadow-sm mb-3">
                 <EditForm Model="@NewDebt" OnValidSubmit="@HandleAddDebt">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description</label>
+                    <div class="mb-3">
+                        <label for="description" class="form-label fw-bold">Description</label>
                         <InputText id="description" class="form-control" @bind-Value="NewDebt.Description" />
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="date" style="display: block; margin-bottom: 5px; font-weight: bold;">Date</label>
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-bold">Date</label>
                         <InputDate id="date" class="form-control" @bind-Value="NewDebt.Date" />
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="amount" style="display: block; margin-bottom: 5px; font-weight: bold;">Amount</label>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label fw-bold">Amount</label>
                         <InputNumber id="amount" class="form-control" @bind-Value="NewDebt.Amount" />
+                        @if (NewDebt.Amount <= 0)
+                        {
+                            <span class="text-danger">Amount must be greater than 0</span>
+                        }
                     </div>
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="source" style="display: block; margin-bottom: 5px; font-weight: bold;">Source</label>
+                    <div class="mb-3">
+                        <label for="source" class="form-label fw-bold">Source</label>
                         <InputText id="source" class="form-control" @bind-Value="NewDebt.Source" />
-                        <ValidationMessage For="@(() => NewDebt.Source)" />
+                        @if (string.IsNullOrWhiteSpace(NewDebt.Source))
+                        {
+                            <span class="text-danger">Source cannot be empty</span>
+                        }
                     </div>
 
-                    <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary w-100 mt-3" disabled="@(!IsFormValid())">
                         Add Debt
                     </button>
                 </EditForm>
             </div>
 
-            <!-- Add Custom Tag -->
-            <div style="background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                <h6 style="margin-bottom: 15px; font-weight: bold;">Add a Custom Source</h6>
-                <div style="display: flex; align-items: center;">
-                    <InputText id="new-source" class="form-control" @bind-Value="NewSource" placeholder="Enter source" style="margin-right: 10px;" />
-                    <button style="background-color: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;" @onclick="HandleAddSource">
-                        Add Source
-                    </button>
+            <!-- Add Custom Source -->
+            <div class="bg-white p-3 rounded shadow-sm">
+                <h6 class="fw-bold mb-3">Add a Custom Source</h6>
+                <div class="d-flex align-items-center">
+                    <InputText id="new-source" class="form-control me-2" @bind-Value="NewSource" placeholder="Enter source" />
+                    <button class="btn btn-success" @onclick="HandleAddSource">Add Source</button>
                 </div>
             </div>
 
-            <!-- Filter Option -->
-            <div style="margin-top: 20px;">
-                <label for="filter" style="font-weight: bold;">Filter by Status:</label>
-                <select class="form-control" @bind="selectedFilter" style="width: 200px;">
-                    <option value="All">All</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Paid">Paid</option>
-                </select>
+            <!-- Filter Buttons -->
+            <div class="mt-4 d-flex justify-content-center gap-3">
+                <button class="btn btn-outline-primary @GetButtonClass("All")" @onclick="FilterAll">
+                    All (@_debts.Count)
+                </button>
+                <button class="btn btn-outline-warning @GetButtonClass("Pending")" @onclick="FilterPending">
+                    Pending (@_debts.Count(d => !d.Paid))
+                </button>
+                <button class="btn btn-outline-success @GetButtonClass("Paid")" @onclick="FilterPaid">
+                    Paid (@_debts.Count(d => d.Paid))
+                </button>
             </div>
 
+
+
+
             <!-- Debts Table -->
-            <div style="background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); margin-top: 30px;">
-                <h5 style="color: #007bff; font-size: 1.25rem; margin-bottom: 20px;">Debt List</h5>
+            <div class="bg-white p-4 rounded shadow-sm mt-4">
+                <h5 class="text-primary mb-3">Debt List</h5>
                 <table class="table">
                     <thead>
                         <tr>
@@ -91,11 +101,13 @@
                                 <td>@debt.Amount</td>
                                 <td>@debt.Date?.ToString("yyyy-MM-dd")</td>
                                 <td>@debt.Source</td>
-                                <td>@(debt.Paid ? "Paid" : "Pending")</td>
+                                <td class="fw-bold @((debt.Paid ? "text-success" : "text-warning"))">
+                                    @(debt.Paid ? "Paid" : "Pending")
+                                </td>
                                 <td>
                                     @if (!debt.Paid)
                                     {
-                                        <button @onclick="() => HandleMarkAsPaid(debt.Id)" class="btn btn-success">
+                                        <button @onclick="() => HandleMarkAsPaid(debt.Id)" class="btn btn-success btn-sm">
                                             Mark as Paid
                                         </button>
                                     }
@@ -112,10 +124,13 @@
 @code {
     private Debt NewDebt = new Debt();
     private string balance = "0";
-    private List<string> Sources = new();
-    private string NewSource = string.Empty;
     private List<Debt> _debts = new();
     private string selectedFilter = "All";
+    private string NewSource = string.Empty; // Custom source input field
+    
+    private async Task FilterAll() => ApplyFilter("All");
+    private async Task FilterPending() => ApplyFilter("Pending");
+    private async Task FilterPaid() => ApplyFilter("Paid");
 
     private IEnumerable<Debt> FilteredDebts
     {
@@ -125,10 +140,20 @@
                 return _debts;
             else if (selectedFilter == "Pending")
                 return _debts.Where(d => !d.Paid);
-            else // Paid
+            else
                 return _debts.Where(d => d.Paid);
         }
     }
+
+    private bool IsFormValid() =>
+        !string.IsNullOrWhiteSpace(NewDebt.Source) && NewDebt.Amount > 0;
+
+    private void ApplyFilter(string filter)
+    {
+        selectedFilter = filter;
+    }
+
+    private string GetButtonClass(string filter) => selectedFilter == filter ? "active" : string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,23 +161,21 @@
         if (currentUser != null)
         {
             balance = currentUser.TotalBalance.ToString();
-            Sources = UserService.GetAllTags(); // Fetch tags using UserService
             _debts = UserService.GetAllDebtsForUser(); // Fetch debts using UserService
         }
     }
 
     private async Task HandleAddDebt()
     {
+        if (!IsFormValid())
+        {
+            Snackbar.Add("Please fill out all required fields correctly.", Severity.Warning);
+            return;
+        }
+
         try
         {
-            // Validate if Source is provided
-            if (string.IsNullOrWhiteSpace(NewDebt.Source))
-            {
-                Snackbar.Add("Source cannot be empty", Severity.Warning);
-                return;
-            }
-
-            bool debtAdded = UserService.AddDebtForUser(NewDebt); // Call method from UserService
+            bool debtAdded = UserService.AddDebtForUser(NewDebt);
 
             if (debtAdded)
             {
@@ -173,40 +196,12 @@
         }
     }
 
-    private void HandleAddSource()
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(NewSource))
-            {
-                Snackbar.Add("Source cannot be empty", Severity.Warning);
-                return;
-            }
-
-            var sourceAdded = UserService.AddTagToUser(NewSource); // Add the source tag using UserService
-
-            if (sourceAdded)
-            {
-                Snackbar.Add("Source added successfully!", Severity.Success);
-                Sources = UserService.GetAllTags(); // Refresh sources list
-                NewSource = string.Empty;
-            }
-            else
-            {
-                Snackbar.Add("Source already exists", Severity.Info);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to add source: {ex.Message}", Severity.Error);
-        }
-    }
-
     private async Task HandleMarkAsPaid(int debtId)
     {
         try
         {
-            bool markedAsPaid = UserService.MarkDebtAsPaid(debtId); // Mark debt as paid using UserService
+            bool markedAsPaid = UserService.MarkDebtAsPaid(debtId);
+
             if (markedAsPaid)
             {
                 Snackbar.Add("Debt marked as paid successfully!", Severity.Success);
@@ -220,6 +215,34 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Failed to mark the debt as paid: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task HandleAddSource()
+    {
+        if (string.IsNullOrWhiteSpace(NewSource))
+        {
+            Snackbar.Add("Source cannot be empty.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            bool sourceAdded = UserService.AddCustomSource(NewSource); // Add source using service
+
+            if (sourceAdded)
+            {
+                Snackbar.Add("Custom source added successfully!", Severity.Success);
+                NewSource = string.Empty; // Clear input field
+            }
+            else
+            {
+                Snackbar.Add("Failed to add custom source. Please try again.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding custom source: {ex.Message}", Severity.Error);
         }
     }
 }
