@@ -12,6 +12,7 @@
                     <MudText Typo="Typo.h3" Align="Align.Center" Color="Color.Primary">Expense Tracker Dashboard</MudText>
                 </MudItem>
             </MudGrid>
+            
             <div style="margin-top: 50px; margin-bottom: 50px">
                 <MudGrid Container Spacing="6" Class="mt-6">
                     <MudItem xs="12" sm="4">
@@ -23,15 +24,9 @@
                     <MudItem xs="12" sm="4">
                         <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth OnClick="@(() => NavigateToViewDebts())">View Debts</MudButton>
                     </MudItem>
-                    <!-- Button to View Pending Debts -->
-                    <MudItem xs="12" sm="4">
-                        <MudButton Variant="Variant.Filled" Color="Color.Warning" FullWidth OnClick="@(() => NavigateToPendingDebts())">View Pending Debts</MudButton>
-                    </MudItem>
                 </MudGrid>
             </div>
         
-        
-            
             <!-- Financial Overview -->
             <MudGrid Container Spacing="6" Class="mb-6">
                 @foreach (var card in GetFinancialCards())
@@ -138,9 +133,9 @@
                                 <MudTh>Actions</MudTh>
                             </HeaderContent>
                             <RowTemplate>
-                                <MudTd>@context.Date.ToString()</MudTd>
-                                <MudTd>@context.Description</MudTd>
-                                <MudTd>$@context.Amount</MudTd>
+                                <MudTd Style="@GetDebtRowStyle(context)">@context.Date.ToString()</MudTd>
+                                <MudTd Style="@GetDebtRowStyle(context)">@context.Description</MudTd>
+                                <MudTd Style="@GetDebtRowStyle(context)">$@context.Amount</MudTd>
                                 <MudTd>
                                     <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => DeleteDebt(context))">Delete</MudButton>
                                 </MudTd>
@@ -215,8 +210,14 @@
         {
             ("Total Inflow", "Color.Primary", totalInflow),
             ("Total Outflow", "Color.Error", totalOutflow),
-            ("Current Balance", "Color.Success", currentBalance)
+            ("Current Balance", "Color.Info", currentBalance)
         };
+    }
+
+    private string GetDebtRowStyle(Debt debt)
+    {
+        // If debt is pending (not paid), highlight it with a light red background
+        return debt.Paid ? "" : "background-color: #f9e8e8;";
     }
 
     private void DeleteExpense(Expense expense)
@@ -231,32 +232,27 @@
         debts.Remove(debt);
     }
 
-    // Class to store data for the dynamic donut chart based on tags
+    private void NavigateToAddExpense()
+    {
+        NavigationManager.NavigateTo("/add-expense");
+    }
+
+    private void NavigateToViewExpenses()
+    {
+        NavigationManager.NavigateTo("/view-expenses");
+    }
+
+    private void NavigateToViewDebts()
+    {
+        NavigationManager.NavigateTo("/view-debts");
+    }
+    
     public class ExpenseGroup
     {
         public string Tag { get; set; }
         public double[] Data { get; set; }
         public string[] Labels { get; set; }
     }
-
-    // Navigation functions
-    private void NavigateToAddExpense()
-    {
-        NavigationManager.NavigateTo("/addexpense");
-    }
-
-    private void NavigateToViewExpenses()
-    {
-        NavigationManager.NavigateTo("/viewexpenses");
-    }
-
-    private void NavigateToViewDebts()
-    {
-        NavigationManager.NavigateTo("/debts");
-    }
-
-    private void NavigateToPendingDebts()
-    {
-        NavigationManager.NavigateTo("/pendingdebts");
-    }
 }
+
+
