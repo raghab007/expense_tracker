@@ -22,13 +22,24 @@
                    required />
             <br />
 
+            <!-- Currency Selection Dropdown -->
+            <div style="margin: 10px 0;">
+                <select @bind="SelectedCurrency"
+                        style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; cursor: pointer;">
+                    @foreach (var currency in Currencies)
+                    {
+                        <option value="@currency.Value">@currency.Key</option>
+                    }
+                </select>
+            </div>
+
             <button type="submit"
                     style="width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s ease;">
                 Login
             </button>
         </EditForm>
-        <br/>
-        <br/>
+        <br />
+        <br />
         <p style="color: #555; font-size: 14px;">Don't have an account?
             <a href="signup" style="color: #007bff; text-decoration: none; font-weight: bold;">Sign Up</a>
         </p>
@@ -42,16 +53,33 @@
     private string Password { get; set; } = string.Empty;
     private string ErrorMessage { get; set; } = string.Empty;
 
+    // Dropdown values
+    private string SelectedCurrency { get; set; } = "Rs"; // Default currency
+    private string currency { get; set; } = string.Empty; // Variable to store the selected currency
+
+    private List<Currency> Currencies { get; set; } = new List<Currency>
+    {
+        new Currency { Key = "Nepali Rupee (Rs)", Value = "Rs" },
+        new Currency { Key = "Indian Rupee (₹)", Value = "₹" },
+        new Currency { Key = "Pound Sterling (£)", Value = "£" },
+        new Currency { Key = "US Dollar ($)", Value = "$" }
+    };
+
     private async Task HandleLogin()
     {
         try
         {
-            var user = UserService.Login(Username, Password);
-            
+            var user = UserService.Login(Username, Password,SelectedCurrency);
+
             if (user != null)
             {
                 // Successful login
                 ErrorMessage = string.Empty;
+
+                // Update currency variable
+                currency = SelectedCurrency;
+
+                Console.WriteLine($"Selected currency: {currency}");
 
                 // Navigate to the home page
                 NavigationManager.NavigateTo("/home");
@@ -67,5 +95,12 @@
             // Handle unexpected errors
             ErrorMessage = $"An error occurred: {ex.Message}";
         }
+    }
+
+    // Currency class
+    private class Currency
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 }

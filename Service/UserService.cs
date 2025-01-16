@@ -59,12 +59,13 @@ namespace DotnetCourseowork.Service
         }
 
         // Authenticate the user and return user details if login is successful
-        public User? Login(string username, string password)
+        public User? Login(string username, string password,string currency)
         {
             var user = _users.FirstOrDefault(u => u.Username == username && u.Password == password);
             if (user != null)
             {
                 _userContext.CurrentUser = user;
+                SetCurrency(currency);
             }
 
             return user; // Return the user if authentication is successful, otherwise null
@@ -413,7 +414,18 @@ namespace DotnetCourseowork.Service
 
             return user.Debts.Where(d => !d.Paid).Sum(d => d.Amount);
         }
-        
+
+        public string GetCurrency()
+        {
+           return _userContext.Currency;
+        }
+
+        public void SetCurrency(string currency)
+        {
+            
+            _userContext.Currency = currency;
+        }
+
 
 
     }
