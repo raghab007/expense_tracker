@@ -10,8 +10,8 @@
             <MudGrid Container Spacing="4" Class="mb-6">
                 <MudItem xs="12">
                     <MudText Typo="Typo.h3" Align="Align.Center" Color="Color.Primary">Expense Tracker Dashboard</MudText>
-            </MudItem>
-                </MudGrid>
+                </MudItem>
+            </MudGrid>
             
             <div style="margin-top: 50px; margin-bottom: 50px">
                 <MudGrid Container Spacing="6" Class="mt-6">
@@ -118,12 +118,35 @@
                     </MudCard>
                 </MudItem>
             </MudGrid>
+
+            <!-- Unpaid Debts Table -->
+            <MudGrid Container Spacing="6" Class="mt-6">
+                <MudItem xs="12">
+                    <MudCard Class="pa-4" Elevation="4">
+                        <MudText Typo="Typo.h6" Align="Align.Left" Color="Color.Primary">Unpaid Debts</MudText>
+                        <MudTable Items="@unpaidDebts" Hover="true">
+                            <HeaderContent>
+                                <MudTh>Date</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Amount</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Date.ToString()</MudTd>
+                                <MudTd>@context.Description</MudTd>
+                                <MudTd>$@context.Amount</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
 @code {
     private List<Expense> recentExpenses = new();
+    private List<Debt> unpaidDebts = new();
     private double totalInflow;
     private double totalOutflow;
     private double currentBalance;
@@ -163,6 +186,9 @@
         clearedDebts = debts.Count(d => d.Paid);
         unclearedDebts = debts.Count(d => !d.Paid);
         totalDebts = debts.Count;
+
+        // Filter unpaid debts
+        unpaidDebts = debts.Where(d => !d.Paid).ToList();
 
         // Set financial chart data
         chartData = new double[] { totalInflow, totalOutflow, totalDebts };
