@@ -109,7 +109,7 @@
                             <RowTemplate>
                                 <MudTd>@context.Date.ToString()</MudTd>
                                 <MudTd>@context.Description</MudTd>
-                                <MudTd>$@context.Amount</MudTd>
+                                <MudTd>@currency @context.Amount</MudTd>
                                 <MudTd>
                                     <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => DeleteExpense(context))">Delete</MudButton>
                                 </MudTd>
@@ -133,7 +133,7 @@
                             <RowTemplate>
                                 <MudTd>@context.Date.ToString()</MudTd>
                                 <MudTd>@context.Description</MudTd>
-                                <MudTd>$@context.Amount</MudTd>
+                                <MudTd>@currency @context.Amount</MudTd>
                             </RowTemplate>
                         </MudTable>
                     </MudCard>

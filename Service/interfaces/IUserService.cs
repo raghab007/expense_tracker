@@ -31,7 +31,6 @@ namespace DotnetCourseowork.Service
         List<string> GetAllTags();
         bool AddTagToUser(string tag);
 
-        // Currency management
         string GetCurrency();
         void SetCurrency(string currency);
     }

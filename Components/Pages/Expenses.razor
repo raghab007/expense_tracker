@@ -104,7 +104,7 @@
                     <tr>
                         <td>@expense.Date.ToString()</td>
                         <td>@expense.Description</td>
-                        <td>$@expense.Amount</td>
+                        <td>@currency @expense.Amount</td>
                         <td>@expense.ExpenseType</td>
                         <td>@expense.ExpenseTag</td>
                         <td>@(string.IsNullOrEmpty(expense.Note) ? "No Note" : expense.Note)</td>
@@ -182,6 +182,7 @@
     private DateTime? endDate;
     private string descriptionFilter;
     private string selectedTag;
+    private string currency;
 
     private int creditCount;
     private int debitCount;
@@ -198,6 +199,7 @@
         expenses = UserService.GetUserExpenses();
         filteredExpenses = expenses;
         UpdateCounts();
+        currency = UserService.GetCurrency();
 
         // Populate the tags list with unique tags
         tags = expenses.Select(e => e.ExpenseTag).Distinct().ToList();

@@ -34,7 +34,7 @@
                         <label for="amount" class="form-label fw-bold">Amount</label>
                         <InputGroup>
                             <InputNumber id="amount" class="form-control" @bind-Value="NewDebt.Amount" />
-                            <InputGroupText>$</InputGroupText>
+                            <InputGroupText></InputGroupText>
                         </InputGroup>
                         @if (NewDebt.Amount <= 0)
                         {
@@ -89,7 +89,7 @@
                         {
                             <tr>
                                 <td>@debt.Description</td>
-                                <td>@debt.Amount.ToString("C")</td>
+                                <td> @currency @debt.Amount.ToString()</td>
                                 <td>@debt.Date?.ToString("yyyy-MM-dd")</td>
                                 <td>@debt.Source</td>
                                 <td class="fw-bold @((debt.Paid ? "text-success" : "text-warning"))">
@@ -119,6 +119,7 @@
     private string selectedFilter = "All";
     private string NewSource = string.Empty;
 
+    private string currency;
     private IEnumerable<Debt> FilteredDebts
     {
         get
@@ -144,6 +145,7 @@
         {
             balance = currentUser.TotalBalance.ToString();
             _debts = UserService.GetAllDebtsForUser();
+            currency = UserService.GetCurrency();
         }
     }
 
