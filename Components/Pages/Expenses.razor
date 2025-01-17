@@ -4,7 +4,6 @@
 @inject NavigationManager NavigationManager
 
 <div class="container my-4">
-    <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="text-primary">Manage Expenses</h3>
         <button class="btn btn-outline-primary" @onclick="NavigateToHome">
@@ -15,7 +14,7 @@
     <div class="card shadow-sm p-4 mb-4">
         <h5 class="mb-3 text-secondary">Filter Expenses</h5>
 
-        <!-- Expense Type Filters -->
+        <!-- Type Filters -->
         <div class="row text-center mb-3">
             <div class="col-md-4">
                 <button class="btn btn-outline-success w-100 rounded-pill" @onclick="ShowCreditExpenses">
@@ -37,25 +36,24 @@
         <!-- Filter by Amount -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <input type="number" class="form-control" placeholder="Min Amount" @bind="minAmount" />
+                <input type="number" class="form-control" placeholder="Min Amount" @bind="minAmount"/>
             </div>
             <div class="col-md-6">
-                <input type="number" class="form-control" placeholder="Max Amount" @bind="maxAmount" />
+                <input type="number" class="form-control" placeholder="Max Amount" @bind="maxAmount"/>
             </div>
         </div>
-
         <!-- Filter by Date -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <input type="date" class="form-control" @bind="startDate" />
+                <input type="date" class="form-control" @bind="startDate"/>
             </div>
             <div class="col-md-6">
-                <input type="date" class="form-control" @bind="endDate" />
+                <input type="date" class="form-control" @bind="endDate"/>
             </div>
         </div>
 
         <!-- Filter by Description -->
-        <input type="text" class="form-control mb-3" placeholder="Search by Description" @bind="descriptionFilter" />
+        <input type="text" class="form-control mb-3" placeholder="Search by Description" @bind="descriptionFilter"/>
 
         <!-- Filter by Tag -->
         <div class="row mb-3">
@@ -70,7 +68,7 @@
             </div>
         </div>
 
-        <!-- Apply Filters -->
+        <!-- Filters -->
         <div class="row">
             <div class="col-md-6">
                 <button class="btn btn-dark w-100 rounded-pill" @onclick="ApplyFilters">Apply Filters</button>
@@ -81,7 +79,6 @@
         </div>
     </div>
 
-    <!-- Sort by Date Button -->
     <button class="btn btn-dark mb-3 rounded-pill" @onclick="SortByDate">Sort by Date</button>
 
     <!-- Expenses Table -->
@@ -89,46 +86,45 @@
         <h5 class="text-secondary mb-3">Expense Details</h5>
         <table class="table table-bordered table-striped">
             <thead class="thead-dark">
-                <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Expense Type</th>
-                    <th>Expense Tag</th>
-                    <th>Note</th>
-                    <th>Actions</th>
-                </tr>
+            <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Expense Type</th>
+                <th>Expense Tag</th>
+                <th>Note</th>
+                <th>Actions</th>
+            </tr>
             </thead>
             <tbody>
-                @if (filteredExpenses.Count > 0)
-                {
-                    @foreach (var expense in filteredExpenses)
-                    {
-                        <tr>
-                            <td>@expense.Date.ToString()</td>
-                            <td>@expense.Description</td>
-                            <td>$@expense.Amount</td>
-                            <td>@expense.ExpenseType</td>
-                            <td>@expense.ExpenseTag</td>
-                            <td>@(string.IsNullOrEmpty(expense.Note) ? "No Note" : expense.Note)</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" @onclick="() => OpenNoteModal(expense)">Add/Edit Note</button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => OpenDeleteConfirmationModal(expense)">Delete</button>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
+            @if (filteredExpenses.Count > 0)
+            {
+                @foreach (var expense in filteredExpenses)
                 {
                     <tr>
-                        <td colspan="7" class="text-center">No expenses available.</td>
+                        <td>@expense.Date.ToString()</td>
+                        <td>@expense.Description</td>
+                        <td>$@expense.Amount</td>
+                        <td>@expense.ExpenseType</td>
+                        <td>@expense.ExpenseTag</td>
+                        <td>@(string.IsNullOrEmpty(expense.Note) ? "No Note" : expense.Note)</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => OpenNoteModal(expense)">Add/Edit Note</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => OpenDeleteConfirmationModal(expense)">Delete</button>
+                        </td>
                     </tr>
                 }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center">No expenses available.</td>
+                </tr>
+            }
             </tbody>
         </table>
     </div>
 
-    <!-- Modal for Adding/Editing Notes -->
     @if (isNoteModalVisible)
     {
         <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel" aria-hidden="true">
@@ -152,7 +148,6 @@
         </div>
     }
 
-    <!-- Modal for Delete Confirmation -->
     @if (isDeleteConfirmationModalVisible)
     {
         <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -320,7 +315,6 @@
     {
         if (selectedExpense != null)
         {
-            // Call UpdateExpenseNote method to update the note
             var result = UserService.UpdateExpenseNote(selectedExpense.Id, noteText);
 
             if (result)

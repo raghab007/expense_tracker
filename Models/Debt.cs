@@ -5,10 +5,7 @@ namespace DotnetCourseowork.Models;
 
 public class Debt
 {
-    public Debt()
     
-    {
-    }
     public int Id { get; set; }
     public int Amount { get; set; } 
     public string Description { get; set; }

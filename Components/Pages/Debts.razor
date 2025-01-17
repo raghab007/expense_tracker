@@ -4,25 +4,25 @@
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="d-flex flex-column align-items-center">
-        <h3>Balance: @balance</h3>
-        <div class="w-100" style="max-width: 900px;">
+        <h3 class="text-center">Balance: @balance</h3>
+        <div class="w-100" style="max-width: 1000px;">
 
             <!-- Page Title -->
-            <div class="mb-3">
+            <div class="mb-4">
                 <h5 class="text-primary">Add Debt</h5>
             </div>
 
             <!-- Debt Form -->
-            <div class="bg-white p-4 rounded shadow-sm mb-3">
+            <div class="bg-white p-4 rounded shadow-sm mb-4">
                 <EditForm Model="@NewDebt" OnValidSubmit="@HandleAddDebt">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
                     <div class="mb-3">
                         <label for="description" class="form-label fw-bold">Description</label>
-                        <InputText id="description" class="form-control" @bind-Value="NewDebt.Description" />
+                        <InputText id="description" class="form-control" @bind-Value="NewDebt.Description" placeholder="Enter debt description" />
                     </div>
 
                     <div class="mb-3">
@@ -32,7 +32,10 @@
 
                     <div class="mb-3">
                         <label for="amount" class="form-label fw-bold">Amount</label>
-                        <InputNumber id="amount" class="form-control" @bind-Value="NewDebt.Amount" />
+                        <InputGroup>
+                            <InputNumber id="amount" class="form-control" @bind-Value="NewDebt.Amount" />
+                            <InputGroupText>$</InputGroupText>
+                        </InputGroup>
                         @if (NewDebt.Amount <= 0)
                         {
                             <span class="text-danger">Amount must be greater than 0</span>
@@ -41,7 +44,7 @@
 
                     <div class="mb-3">
                         <label for="source" class="form-label fw-bold">Source</label>
-                        <InputText id="source" class="form-control" @bind-Value="NewDebt.Source" />
+                        <InputText id="source" class="form-control" @bind-Value="NewDebt.Source" placeholder="Enter source of debt" />
                         @if (string.IsNullOrWhiteSpace(NewDebt.Source))
                         {
                             <span class="text-danger">Source cannot be empty</span>
@@ -52,15 +55,6 @@
                         Add Debt
                     </button>
                 </EditForm>
-            </div>
-
-            <!-- Add Custom Source -->
-            <div class="bg-white p-3 rounded shadow-sm">
-                <h6 class="fw-bold mb-3">Add a Custom Source</h6>
-                <div class="d-flex align-items-center">
-                    <InputText id="new-source" class="form-control me-2" @bind-Value="NewSource" placeholder="Enter source" />
-                    <button class="btn btn-success" @onclick="HandleAddSource">Add Source</button>
-                </div>
             </div>
 
             <!-- Filter Buttons -->
@@ -79,10 +73,9 @@
             <!-- Debts Table -->
             <div class="bg-white p-4 rounded shadow-sm mt-4">
                 <h5 class="text-primary mb-3">Debt List</h5>
-                <table class="table">
+                <table class="table table-hover">
                     <thead>
                     <tr>
-                        
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Date</th>
@@ -96,7 +89,7 @@
                         {
                             <tr>
                                 <td>@debt.Description</td>
-                                <td>@debt.Amount</td>
+                                <td>@debt.Amount.ToString("C")</td>
                                 <td>@debt.Date?.ToString("yyyy-MM-dd")</td>
                                 <td>@debt.Source</td>
                                 <td class="fw-bold @((debt.Paid ? "text-success" : "text-warning"))">
@@ -121,7 +114,7 @@
 
 @code {
     private Debt NewDebt = new Debt();
-    private string balance = "0";
+    private string balance = "100";
     private List<Debt> _debts = new();
     private string selectedFilter = "All";
     private string NewSource = string.Empty;
@@ -206,34 +199,7 @@
             Snackbar.Add($"Failed to mark the debt as paid: {ex.Message}", Severity.Error);
         }
     }
-
-    private async Task HandleAddSource()
-    {
-        if (string.IsNullOrWhiteSpace(NewSource))
-        {
-            Snackbar.Add("Source cannot be empty.", Severity.Warning);
-            return;
-        }
-
-        try
-        {
-            bool sourceAdded = UserService.AddCustomSource(NewSource);
-
-            if (sourceAdded)
-            {
-                Snackbar.Add("Custom source added successfully!", Severity.Success);
-                NewSource = string.Empty;
-            }
-            else
-            {
-                Snackbar.Add("Failed to add custom source. Please try again.", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Error adding custom source: {ex.Message}", Severity.Error);
-        }
-    }
+    
 
     private void FilterAll()
     {
