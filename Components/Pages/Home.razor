@@ -10,23 +10,23 @@
             <MudGrid Container Spacing="4" Class="mb-6">
                 <MudItem xs="12">
                     <MudText Typo="Typo.h3" Align="Align.Center" Color="Color.Primary">Expense Tracker Dashboard</MudText>
-                </MudItem>
-            </MudGrid>
+            </MudItem>
+                </MudGrid>
             
             <div style="margin-top: 50px; margin-bottom: 50px">
                 <MudGrid Container Spacing="6" Class="mt-6">
                     <MudItem xs="12" sm="4">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth OnClick="@(() => NavigateToAddExpense())">Add Expense</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth OnClick="@NavigateToAddExpense">Add Expense</MudButton>
                     </MudItem>
                     <MudItem xs="12" sm="4">
-                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth OnClick="@(() => NavigateToViewExpenses())">View Expenses</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" FullWidth OnClick="@NavigateToViewExpenses">View Expenses</MudButton>
                     </MudItem>
                     <MudItem xs="12" sm="4">
-                        <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth OnClick="@(() => NavigateToViewDebts())">View Debts</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" FullWidth OnClick="@NavigateToViewDebts">View Debts</MudButton>
                     </MudItem>
                 </MudGrid>
             </div>
-        
+
             <!-- Financial Overview -->
             <MudGrid Container Spacing="6" Class="mb-6">
                 @foreach (var card in GetFinancialCards())
@@ -40,63 +40,61 @@
                         </MudCard>
                     </MudItem>
                 }
-            </MudGrid>
-            
 
-            <!-- Credit/Debit Statistics -->
-            <MudGrid Container Spacing="6" Class="mb-6">
+                <!-- Additional Statistics -->
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard Class="pa-4" Elevation="4">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Credits @currency</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Primary">
-                            @currency  @totalCredits
+                    <MudCard Class="pa-4" Elevation="5" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Transactions</MudText>
+                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Dark">
+                            @totalTransactions
                         </MudText>
                     </MudCard>
                 </MudItem>
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard Class="pa-4" Elevation="4">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debits @currency</MudText>
+                    <MudCard Class="pa-4" Elevation="5" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debts (Cleared)</MudText>
+                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Success">
+                            @clearedDebts
+                        </MudText>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="pa-4" Elevation="5" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debts (Uncleared)</MudText>
                         <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Error">
-                            @currency  @totalDebits
+                            @unclearedDebts
+                        </MudText>
+                    </MudCard>
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="pa-4" Elevation="5" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Dark">Total Debts (All)</MudText>
+                        <MudText Typo="Typo.h4" Align="Align.Center" Color="Color.Info">
+                            @totalDebts
                         </MudText>
                     </MudCard>
                 </MudItem>
             </MudGrid>
 
-            <!-- Static Donut Charts for Total Credits and Total Debits -->
-            <MudGrid Container Spacing="6" Class="mb-6">
+            <!-- Financial Overview Donut Chart -->
+            <MudGrid Container Spacing="6" Class="mt-6">
                 <MudItem xs="12" sm="6" md="4">
-                    <MudPaper Class="pa-4" Elevation="3">
-                        <MudChart ChartType="ChartType.Donut" Width="100%" Height="300px" InputData="@(new double[] { totalCredits, totalDebits })" InputLabels="@(new string[] { "Credits", "Debits" })">
-                            <CustomGraphics>
-                                <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">Total</text>
-                                <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="5">@totalCredits</text>
-                            </CustomGraphics>
-                        </MudChart>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Total Credits vs Total Debits</MudText>
-                    </MudPaper>
+                    <MudCard Class="pa-4" Elevation="4" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary">Financial Overview</MudText>
+                        <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" @bind-SelectedIndex="Index" InputData="@chartData" InputLabels="@chartLabels"></MudChart>
+                    </MudCard>
+                </MudItem>
+
+                <!-- Expense Distribution by Tag Donut Chart -->
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Class="pa-4" Elevation="4" Square="true">
+                        <MudText Typo="Typo.h6" Align="Align.Center" Color="Color.Primary">Expense Distribution by Tag</MudText>
+                        <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" @bind-SelectedIndex="TagIndex" InputData="@tagChartData" InputLabels="@tagChartLabels"></MudChart>
+                    </MudCard>
                 </MudItem>
             </MudGrid>
 
-            <!-- Dynamic Donut Charts Section for Tags -->
-            <MudGrid Container Spacing="6" Class="mb-6">
-                @foreach (var expenseGroup in groupedExpenses)
-                {
-                    <MudItem xs="12" sm="6">
-                        <MudPaper Class="pa-4" Elevation="3">
-                            <MudChart ChartType="ChartType.Donut" Width="100%" Height="300px" InputData="@(expenseGroup.Data)" InputLabels="@expenseGroup.Labels">
-                                <CustomGraphics>
-                                    <text class="donut-inner-text" x="47%" y="35%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="2">Total</text>
-                                    <text class="donut-inner-text" x="47%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="black" font-family="Helvetica" font-size="5">@expenseGroup.Data.Sum().ToString()</text>
-                                </CustomGraphics>
-                            </MudChart>
-                            <MudText Typo="Typo.h6" Align="Align.Center">@expenseGroup.Tag</MudText>
-                        </MudPaper>
-                    </MudItem>
-                }
-            </MudGrid>
-            
-            <!-- Recent Transactions and Debts Tables -->
+            <!-- Recent Transactions -->
             <MudGrid Container Spacing="6" Class="mt-6">
                 <MudItem xs="12">
                     <MudCard Class="pa-4" Elevation="4">
@@ -120,54 +118,30 @@
                     </MudCard>
                 </MudItem>
             </MudGrid>
-
-            <!-- Debts Table -->
-            <MudGrid Container Spacing="6" Class="mt-6">
-                <MudItem xs="12">
-                    <MudCard Class="pa-4" Elevation="4">
-                        <MudText Typo="Typo.h6" Align="Align.Left" Color="Color.Primary">Debts</MudText>
-                        <MudTable Items="@debts" Hover="true">
-                            <HeaderContent>
-                                <MudTh>Date</MudTh>
-                                <MudTh>Description</MudTh>
-                                <MudTh>Amount</MudTh>
-                                <MudTh>Actions</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd Style="@GetDebtRowStyle(context)">@context.Date.ToString()</MudTd>
-                                <MudTd Style="@GetDebtRowStyle(context)">@context.Description</MudTd>
-                                <MudTd Style="@GetDebtRowStyle(context)">$@context.Amount</MudTd>
-                                <MudTd>
-                                    <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@(() => DeleteDebt(context))">Delete</MudButton>
-                                </MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </MudCard>
-                </MudItem>
-            </MudGrid>
-
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
 @code {
     private List<Expense> recentExpenses = new();
-    private List<Debt> debts = new();
-    private double totalInflow = 0;
-    private double totalOutflow = 0;
-    private double currentBalance = 0;
+    private double totalInflow;
+    private double totalOutflow;
+    private double currentBalance;
 
-    private double totalCredits = 0;
-    private double totalDebits = 0;
-    private double pendingDebts = 0;
-    private double paidDebts = 0;
+    private double totalTransactions;
+    private int clearedDebts;
+    private int unclearedDebts;
+    private int totalDebts;
 
     private string currency;
 
-    private List<(string Title, string Color, double Value)> FinancialCards => GetFinancialCards();
+    private int Index = -1;
+    private double[] chartData;
+    private string[] chartLabels;
 
-    // Data for dynamic donut charts based on expense tags
-    private List<ExpenseGroup> groupedExpenses = new();
+    private int TagIndex = -1;
+    private double[] tagChartData;
+    private string[] tagChartLabels;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,33 +150,28 @@
 
     private async Task InitializeData()
     {
-        // Initialize data from UserService
+        // Fetch financial data
         totalInflow = UserService.GetTotalInflow();
         totalOutflow = UserService.GetTotalOutflow();
         currentBalance = UserService.GetCurrentUser().TotalBalance;
         currency = UserService.GetCurrency();
 
         recentExpenses = UserService.GetRecentTransactions(5);
-        debts = UserService.GetAllDebtsForUser();
 
-        totalCredits = totalInflow;
-        totalDebits = totalOutflow;
+        totalTransactions = recentExpenses.Count;
+        var debts = UserService.GetAllDebtsForUser();
+        clearedDebts = debts.Count(d => d.Paid);
+        unclearedDebts = debts.Count(d => !d.Paid);
+        totalDebts = debts.Count;
 
-        // Calculate pending and paid debts
-        pendingDebts = debts.Where(d => !d.Paid).Sum(d => d.Amount);
-        paidDebts = debts.Where(d => d.Paid).Sum(d => d.Amount);
+        // Set financial chart data
+        chartData = new double[] { totalInflow, totalOutflow, totalDebts };
+        chartLabels = new string[] { "Total Inflow", "Total Outflow", "Total Debts" };
 
-        // Grouping expenses by tags for dynamic donut chart
-        var expenseGroups = recentExpenses
-            .GroupBy(exp => exp.ExpenseTag)
-            .Select(group => new ExpenseGroup
-            {
-                Tag = group.Key,
-                Data = group.Select(exp => double.Parse(exp.Amount.ToString())).ToArray(),
-                Labels = group.Select(exp => exp.Description).ToArray()
-            }).ToList();
-
-        groupedExpenses = expenseGroups;
+        // Fetch and set expense tag data
+        var tagExpenses = UserService.GetExpensesGroupedByTag();
+        tagChartData = tagExpenses.Values.ToArray();
+        tagChartLabels = tagExpenses.Keys.ToArray();
     }
 
     private List<(string Title, string Color, double Value)> GetFinancialCards()
@@ -215,22 +184,10 @@
         };
     }
 
-    private string GetDebtRowStyle(Debt debt)
-    {
-        // If debt is pending (not paid), highlight it with a light red background
-        return debt.Paid ? "" : "background-color: #f9e8e8;";
-    }
-
     private void DeleteExpense(Expense expense)
     {
         UserService.DeleteExpense(expense.Id);
         recentExpenses.Remove(expense);
-    }
-
-    private void DeleteDebt(Debt debt)
-    {
-        UserService.DeleteDebt(debt.Id);
-        debts.Remove(debt);
     }
 
     private void NavigateToAddExpense()
@@ -247,13 +204,4 @@
     {
         NavigationManager.NavigateTo("/view-debts");
     }
-    
-    public class ExpenseGroup
-    {
-        public string Tag { get; set; }
-        public double[] Data { get; set; }
-        public string[] Labels { get; set; }
-    }
 }
-
-

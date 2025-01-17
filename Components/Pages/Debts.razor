@@ -76,22 +76,20 @@
                 </button>
             </div>
 
-
-
-
             <!-- Debts Table -->
             <div class="bg-white p-4 rounded shadow-sm mt-4">
                 <h5 class="text-primary mb-3">Debt List</h5>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Source</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
+                    <tr>
+                        
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Source</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
                     </thead>
                     <tbody>
                         @foreach (var debt in FilteredDebts)
@@ -107,7 +105,7 @@
                                 <td>
                                     @if (!debt.Paid)
                                     {
-                                        <button @onclick="() => HandleMarkAsPaid(debt.Id)" class="btn btn-success btn-sm">
+                                        <button @onclick="@(() => HandleMarkAsPaid(debt.Id))" class="btn btn-success btn-sm">
                                             Mark as Paid
                                         </button>
                                     }
@@ -126,32 +124,23 @@
     private string balance = "0";
     private List<Debt> _debts = new();
     private string selectedFilter = "All";
-    private string NewSource = string.Empty; // Custom source input field
-    
-    private async Task FilterAll() => ApplyFilter("All");
-    private async Task FilterPending() => ApplyFilter("Pending");
-    private async Task FilterPaid() => ApplyFilter("Paid");
+    private string NewSource = string.Empty;
 
     private IEnumerable<Debt> FilteredDebts
     {
         get
         {
-            if (selectedFilter == "All")
-                return _debts;
-            else if (selectedFilter == "Pending")
-                return _debts.Where(d => !d.Paid);
-            else
-                return _debts.Where(d => d.Paid);
+            return selectedFilter switch
+            {
+                "Pending" => _debts.Where(d => !d.Paid),
+                "Paid" => _debts.Where(d => d.Paid),
+                _ => _debts
+            };
         }
     }
 
     private bool IsFormValid() =>
         !string.IsNullOrWhiteSpace(NewDebt.Source) && NewDebt.Amount > 0;
-
-    private void ApplyFilter(string filter)
-    {
-        selectedFilter = filter;
-    }
 
     private string GetButtonClass(string filter) => selectedFilter == filter ? "active" : string.Empty;
 
@@ -161,7 +150,7 @@
         if (currentUser != null)
         {
             balance = currentUser.TotalBalance.ToString();
-            _debts = UserService.GetAllDebtsForUser(); // Fetch debts using UserService
+            _debts = UserService.GetAllDebtsForUser();
         }
     }
 
@@ -182,8 +171,8 @@
                 Snackbar.Add("Debt added successfully!", Severity.Success);
                 var currentUser = UserService.GetCurrentUser();
                 balance = currentUser?.TotalBalance.ToString() ?? "0";
-                NewDebt = new Debt(); // Reset form
-                _debts = UserService.GetAllDebtsForUser(); // Refresh debts list
+                NewDebt = new Debt();
+                _debts = UserService.GetAllDebtsForUser();
             }
             else
             {
@@ -205,7 +194,7 @@
             if (markedAsPaid)
             {
                 Snackbar.Add("Debt marked as paid successfully!", Severity.Success);
-                _debts = UserService.GetAllDebtsForUser(); // Refresh debts list
+                _debts = UserService.GetAllDebtsForUser();
             }
             else
             {
@@ -228,12 +217,12 @@
 
         try
         {
-            bool sourceAdded = UserService.AddCustomSource(NewSource); // Add source using service
+            bool sourceAdded = UserService.AddCustomSource(NewSource);
 
             if (sourceAdded)
             {
                 Snackbar.Add("Custom source added successfully!", Severity.Success);
-                NewSource = string.Empty; // Clear input field
+                NewSource = string.Empty;
             }
             else
             {
@@ -244,5 +233,20 @@
         {
             Snackbar.Add($"Error adding custom source: {ex.Message}", Severity.Error);
         }
+    }
+
+    private void FilterAll()
+    {
+        selectedFilter = "All";
+    }
+
+    private void FilterPending()
+    {
+        selectedFilter = "Pending";
+    }
+
+    private void FilterPaid()
+    {
+        selectedFilter = "Paid";
     }
 }

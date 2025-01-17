@@ -21,15 +21,7 @@ namespace DotnetCourseowork.Service
             _userContext = userContext;
             LoadUsersFromJson();
         }
-
-        private void EnsureExpensesFileExists()
-        {
-            if (!File.Exists(_expensesFilePath))
-            {
-                File.WriteAllText(_expensesFilePath, "[]");
-            }
-        }
-
+        
         // Load users and expenses from the JSON file
         private void LoadUsersFromJson()
         {
@@ -140,24 +132,8 @@ namespace DotnetCourseowork.Service
             return _userContext.CurrentUser;
         }
 
-        // Add a new user (e.g., during registration)
-        public void AddUser(User newUser)
-        {
-            if (_users.Any(u => u.Username == newUser.Username))
-            {
-                throw new Exception("User already exists");
-            }
-
-            newUser.Expenses = new List<Expense>();
-            _users.Add(newUser);
-            SaveUsersToJson();
-        }
-
-        // Get all users (if needed)
-        public List<User> GetAllUsers()
-        {
-            return _users;
-        }
+      
+        
 
         public bool AddTagToUser(string tag)
         {
@@ -194,34 +170,37 @@ namespace DotnetCourseowork.Service
 
             try
             {
-                // Check for sufficient balance before adding the debt
                 if (user.TotalBalance < debt.Amount)
                 {
                     throw new Exception("Insufficient balance to add debt");
                 }
-                // Assign a unique ID to the debt using Guid for uniqueness across sessions
-                //debt.Id = user.Debts.Any() ? user.Debts.Max(d => d.Id) + 1 : 1;
-                // Add the debt to the user's list
-                List<Debt> debts = user.Debts;
-                Console.WriteLine(user.Debts);
+
+                // Ensure debts list is initialized
+                if (user.Debts == null)
+                {
+                    user.Debts = new List<Debt>();
+                }
+
+                // Assign a new ID for the debt by incrementing the last ID
+                int newDebtId = user.Debts.Count > 0 ? user.Debts.Max(d => d.Id) + 1 : 1;
+                debt.Id = newDebtId;
+
                 user.Debts.Add(debt);
 
-                // Update the user's balance based on the debt amount
+                // Deduct the debt amount from user's balance
                 user.TotalBalance += debt.Amount;
 
-                // Persist the changes to the data storage
-                SaveUsersToJson(); // Ensure this persists data correctly
+                SaveUsersToJson(); // Save changes to persistent storage
 
-                return true; // Debt added successfully
+                return true;
             }
             catch (Exception e)
             {
-                // Log error for debugging and troubleshooting
-                // Ideally, use a logger here instead of Console.WriteLine
                 Console.WriteLine($"Error adding debt: {e.Message}");
                 return false;
             }
         }
+
 
         public bool MarkDebtAsPaid(int debtId)
         {
@@ -239,19 +218,15 @@ namespace DotnetCourseowork.Service
             }
             
 
-            // Mark the debt as paid
             debt.Paid = true;
 
-            // Deduct the debt amount from the user's balance after clearing the debt
             user.TotalBalance -= debt.Amount;
 
-            // Persist changes to the JSON file
             SaveUsersToJson(); // Save the updated list of debts and user balance to JSON
 
             return true; // Debt successfully marked as paid
         }
         
-        // Method to calculate total inflow (credit)
         public double GetTotalInflow()
         {
             var user = _userContext.CurrentUser;
@@ -263,7 +238,6 @@ namespace DotnetCourseowork.Service
             return user.Expenses.Where(e => e.ExpenseType == "Credit").Sum(e => e.Amount);
         }
 
-        // Method to calculate total outflow (debit)
         public double GetTotalOutflow()
         {
             var user = _userContext.CurrentUser;
@@ -282,7 +256,6 @@ namespace DotnetCourseowork.Service
         }
         
         
-        // Method to get the total number of inflows (credits)
         public int GetTotalNumberOfInflows()
         {
             var user = _userContext.CurrentUser;
@@ -454,6 +427,25 @@ namespace DotnetCourseowork.Service
         }
         
         
+        public Dictionary<string, double> GetExpensesGroupedByTag()
+        {
+            var user = _userContext.CurrentUser;
+
+            if (user == null)
+            {
+                throw new Exception("No user is logged in");
+            }
+
+            // Group the expenses by tag and calculate the total amount for each tag
+            var expensesGroupedByTag = user.Expenses
+                .GroupBy(e => e.ExpenseTag) // Group by the tag
+                .ToDictionary(
+                    g => g.Key, // The key is the tag (ExpenseTag)
+                    g => g.Sum(e =>(double) e.Amount) // The value is the total amount for each tag
+                );
+
+            return expensesGroupedByTag; // Return the dictionary with string keys and double values
+        }
         
 
 
