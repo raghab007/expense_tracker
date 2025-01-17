@@ -98,8 +98,8 @@
                                 <td>
                                     @if (!debt.Paid)
                                     {
-                                        <button @onclick="@(() => HandleMarkAsPaid(debt.Id))" class="btn btn-success btn-sm">
-                                            Mark as Paid
+                                        <button @onclick="@(() => OpenPaymentDialog(debt.Id))" class="btn btn-success btn-sm">
+                                            Pay now
                                         </button>
                                     }
                                 </td>
@@ -111,6 +111,28 @@
         </div>
     </div>
 </div>
+
+<!-- Payment Confirmation Modal -->
+@if (showPaymentDialog)
+{
+    <div class="modal fade show" style="display: block;" tabindex="-1" role="dialog" aria-labelledby="paymentDialogLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentDialogLabel">Confirm Payment</h5>
+                    <button type="button" class="btn-close" @onclick="ClosePaymentDialog" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to mark this debt as paid?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="ClosePaymentDialog">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="ConfirmPayment">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private Debt NewDebt = new Debt();
@@ -202,6 +224,25 @@
         }
     }
     
+    private bool showPaymentDialog = false;
+    private int debtIdToPay = 0;
+
+    private void OpenPaymentDialog(int debtId)
+    {
+        debtIdToPay = debtId;
+        showPaymentDialog = true;
+    }
+
+    private void ClosePaymentDialog()
+    {
+        showPaymentDialog = false;
+    }
+
+    private async Task ConfirmPayment()
+    {
+        await HandleMarkAsPaid(debtIdToPay);
+        ClosePaymentDialog();
+    }
 
     private void FilterAll()
     {
